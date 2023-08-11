@@ -1,0 +1,47 @@
+name: Unit tests & Coverage
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the main branch
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ '**' ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "test-and-coverage"
+  test-and-coverage:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-22.04
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Installs the build dependencies, simulating a TTY/PTY via 'unbuffer' to
+      # to fix test_terminal.py on GA (https://github.com/actions/runner/issues/241)
+      # Always include phased updates (LP: #1979244)
+      - name: Install build depends
+        run: |
+          echo "APT::Get::Always-Include-Phased-Updates \"true\";" | sudo tee /etc/apt/apt.conf.d/90phased-updates
+          sudo sed -i '/deb-src/s/^# //' /etc/apt/sources.list
+          sudo apt update
+          sudo apt install python3-rich python3-coverage python3-pytest python3-pytest-cov curl meson gcovr expect libcmocka-dev
+          sudo apt build-dep netplan.io
+
+      # Runs the unit tests with coverage
+      - name: Run unit tests
+        run: |
+          meson setup _build --prefix=/usr -Db_coverage=true -Dunit_testing=true
+          meson compile -C _build
+          unbuffer meson test -C _build --verbose
+
+      # Checks the coverage diff to the main branch
+      #- name: Upload coverage to Codecov
+      #  uses: codecov/codecov-action@v1
+      #  with:
+      #    name: check-coverage
+      #    fail_ci_if_error: true
+      #    verbose: true
