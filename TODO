@@ -1,3 +1,9 @@
+- Remove canonical stuff
+
+- improve python code and linting
+
+- less crashes and bugs!
+
 - improve IPv6 RA handling
 
 - support tunnel device types
