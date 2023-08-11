@@ -60,33 +60,6 @@ ND_DHCP6_NOMTU = ND_DHCP % ("%s", "ipv6", "", "false")
 ND_DHCP6_WOCARRIER = ND_DHCP % ("%s", "ipv6", "\nConfigureWithoutCarrier=yes", "true")
 ND_DHCPYES = ND_DHCP % ("%s", "yes", "", "true")
 ND_DHCPYES_NOMTU = ND_DHCP % ("%s", "yes", "", "false")
-_OVS_BASE = "[Unit]\nDescription=OpenVSwitch configuration for %(iface)s\nDefaultDependencies=no\n\
-Wants=ovsdb-server.service\nAfter=ovsdb-server.service\n"
-OVS_PHYSICAL = (
-    _OVS_BASE
-    + "Requires=sys-subsystem-net-devices-%(iface)s.device\nAfter=sys-subsystem-net-devices-%(iface)s\
-.device\nAfter=netplan-ovs-cleanup.service\nBefore=network.target\nWants=network.target\n%(extra)s"
-)
-OVS_VIRTUAL = (
-    _OVS_BASE
-    + "After=netplan-ovs-cleanup.service\nBefore=network.target\nWants=network.target\n%(extra)s"
-)
-OVS_BR_DEFAULT = "ExecStart=/usr/bin/ovs-vsctl set Bridge %(iface)s external-ids:netplan=true\nExecStart=/usr/bin/ovs-vsctl \
-set-fail-mode %(iface)s standalone\nExecStart=/usr/bin/ovs-vsctl set Bridge %(iface)s external-ids:netplan/global/set-fail-mode=\
-standalone\nExecStart=/usr/bin/ovs-vsctl set Bridge %(iface)s mcast_snooping_enable=false\nExecStart=/usr/bin/ovs-vsctl set \
-Bridge %(iface)s external-ids:netplan/mcast_snooping_enable=false\nExecStart=/usr/bin/ovs-vsctl set Bridge %(iface)s \
-rstp_enable=false\nExecStart=/usr/bin/ovs-vsctl set Bridge %(iface)s external-ids:netplan/rstp_enable=false\n"
-OVS_BR_EMPTY = (
-    _OVS_BASE
-    + "After=netplan-ovs-cleanup.service\nBefore=network.target\nWants=network.target\n\n[Service]\n\
-Type=oneshot\nTimeoutStartSec=10s\nExecStart=/usr/bin/ovs-vsctl --may-exist add-br %(iface)s\n"
-    + OVS_BR_DEFAULT
-)
-OVS_CLEANUP = (
-    _OVS_BASE
-    + "ConditionFileIsExecutable=/usr/bin/ovs-vsctl\nBefore=network.target\nWants=network.target\n\n\
-[Service]\nType=oneshot\nTimeoutStartSec=10s\nExecStart=/usr/sbin/netplan apply --only-ovs-cleanup\n"
-)
 UDEV_MAC_RULE = 'SUBSYSTEM=="net", ACTION=="add", DRIVERS=="%s", ATTR{address}=="%s", NAME="%s"\n'
 UDEV_NO_MAC_RULE = 'SUBSYSTEM=="net", ACTION=="add", DRIVERS=="%s", NAME="%s"\n'
 UDEV_SRIOV_RULE = 'ACTION=="add", SUBSYSTEM=="net", ATTRS{sriov_totalvfs}=="?*", RUN+="/usr/sbin/netplan apply --sriov-only"\n'
@@ -235,14 +208,6 @@ class NetplanV2Normalizer:
             # remove default stanza ("wakeonwlan: [ default ]")
             if "wakeonwlan" in keys and data["wakeonwlan"] == ["default"]:
                 del data["wakeonwlan"]
-            # remove explicit openvswitch stanzas, they might not always be
-            # defined in the original YAML (due to being implicit)
-            if (
-                "openvswitch" in keys
-                and data["openvswitch"] == {}
-                and any(map(full_key.__contains__, [":bonds:", ":bridges:", ":vlans:"]))
-            ):
-                del data["openvswitch"]
             # remove default empty bond-parameters, those are not rendered by the YAML generator
             if "parameters" in keys and data["parameters"] == {} and ":bonds:" in full_key:
                 del data["parameters"]
@@ -513,27 +478,6 @@ class TestBase(unittest.TestCase):
                 if not line.startswith("#"):
                     lines.append(line)
             self.assertEqual("".join(lines), contents)
-
-    def assert_ovs(self, file_contents_map):
-        systemd_dir = os.path.join(self.workdir.name, "run", "systemd", "system")
-        if not file_contents_map:
-            # in this case we assume no OVS configuration should be present
-            self.assertFalse(glob.glob(os.path.join(systemd_dir, "*netplan-ovs-*.service")))
-            return
-
-        self.assertEqual(set(os.listdir(self.workdir.name)) - {"lib"}, {"etc", "run"})
-        ovs_systemd_dir = set(os.listdir(systemd_dir))
-        ovs_systemd_dir.remove("systemd-networkd.service.wants")
-        self.assertEqual(ovs_systemd_dir, {"netplan-ovs-" + f for f in file_contents_map})
-        for fname, contents in file_contents_map.items():
-            fname = "netplan-ovs-" + fname
-            with open(os.path.join(systemd_dir, fname)) as f:
-                self.assertEqual(f.read(), contents)
-            if fname.endswith(".service"):
-                link_path = os.path.join(systemd_dir, "systemd-networkd.service.wants", fname)
-                self.assertTrue(os.path.islink(link_path))
-                link_target = os.readlink(link_path)
-                self.assertEqual(link_target, os.path.join("/", "run", "systemd", "system", fname))
 
     def assert_sriov(self, file_contents_map):
         systemd_dir = os.path.join(self.workdir.name, "run", "systemd", "system")

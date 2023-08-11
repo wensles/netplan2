@@ -48,8 +48,6 @@ netlink
 netplan
 networkd
 NetworkManager
-openvswitch
-ovs
 pre
 prefixtlb
 preshared

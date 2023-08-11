@@ -331,10 +331,6 @@ struct netplan_net_definition {
     gboolean sriov_vlan_filter;
     guint sriov_explicit_vf_count;
 
-    /* these properties are only valid for OpenVSwitch */
-    /* netplan-feature: openvswitch */
-    NetplanOVSSettings ovs_settings;
-
     NetplanBackendSettings backend_settings;
 
     char* filepath;

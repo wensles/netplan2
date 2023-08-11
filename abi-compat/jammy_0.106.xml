@@ -2535,12 +2535,6 @@
       <parameter type-id='type-id-13'/>
       <return type-id='type-id-34'/>
     </function-decl>
-    <function-decl name='has_openvswitch' filepath='../src/util-internal.h' line='92' column='1' visibility='default' binding='global' size-in-bits='64'>
-      <parameter type-id='type-id-309'/>
-      <parameter type-id='type-id-34'/>
-      <parameter type-id='type-id-64'/>
-      <return type-id='type-id-42'/>
-    </function-decl>
     <function-decl name='complex_object_is_dirty' filepath='../src/util-internal.h' line='98' column='1' visibility='default' binding='global' size-in-bits='64'>
       <parameter type-id='type-id-185'/>
       <parameter type-id='type-id-125'/>
@@ -3118,42 +3112,6 @@
       <parameter type-id='type-id-333'/>
       <parameter type-id='type-id-43'/>
       <return type-id='type-id-26'/>
-    </function-decl>
-  </abi-instr>
-  <abi-instr address-size='64' path='../src/openvswitch.c' comp-dir-path='/home/lukas/canonical/netplan/build' language='LANG_C99'>
-    <function-decl name='netplan_netdef_write_ovs' mangled-name='netplan_netdef_write_ovs' filepath='../src/openvswitch.c' line='320' column='1' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='netplan_netdef_write_ovs'>
-      <parameter type-id='type-id-187' name='np_state' filepath='../src/openvswitch.c' line='320' column='1'/>
-      <parameter type-id='type-id-185' name='def' filepath='../src/openvswitch.c' line='320' column='1'/>
-      <parameter type-id='type-id-109' name='rootdir' filepath='../src/openvswitch.c' line='320' column='1'/>
-      <parameter type-id='type-id-325' name='has_been_written' filepath='../src/openvswitch.c' line='320' column='1'/>
-      <parameter type-id='type-id-178' name='error' filepath='../src/openvswitch.c' line='320' column='1'/>
-      <return type-id='type-id-42'/>
-    </function-decl>
-    <function-decl name='netplan_state_finish_ovs_write' mangled-name='netplan_state_finish_ovs_write' filepath='../src/openvswitch.c' line='461' column='1' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='netplan_state_finish_ovs_write'>
-      <parameter type-id='type-id-187' name='np_state' filepath='../src/openvswitch.c' line='461' column='1'/>
-      <parameter type-id='type-id-109' name='rootdir' filepath='../src/openvswitch.c' line='461' column='1'/>
-      <parameter type-id='type-id-178' name='error' filepath='../src/openvswitch.c' line='461' column='1'/>
-      <return type-id='type-id-42'/>
-    </function-decl>
-    <function-decl name='netplan_ovs_cleanup' mangled-name='netplan_ovs_cleanup' filepath='../src/openvswitch.c' line='507' column='1' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='netplan_ovs_cleanup'>
-      <parameter type-id='type-id-109' name='rootdir' filepath='../src/openvswitch.c' line='507' column='1'/>
-      <return type-id='type-id-42'/>
-    </function-decl>
-    <function-decl name='g_str_has_prefix' filepath='/usr/include/glib-2.0/glib/gstrfuncs.h' line='141' column='1' visibility='default' binding='global' size-in-bits='64'>
-      <parameter type-id='type-id-190'/>
-      <parameter type-id='type-id-190'/>
-      <return type-id='type-id-42'/>
-    </function-decl>
-    <function-decl name='g_string_erase' filepath='/usr/include/glib-2.0/glib/gstring.h' line='127' column='1' visibility='default' binding='global' size-in-bits='64'>
-      <parameter type-id='type-id-239'/>
-      <parameter type-id='type-id-321'/>
-      <parameter type-id='type-id-321'/>
-      <return type-id='type-id-239'/>
-    </function-decl>
-    <function-decl name='strcmp' filepath='/usr/include/string.h' line='156' column='1' visibility='default' binding='global' size-in-bits='64'>
-      <parameter type-id='type-id-109'/>
-      <parameter type-id='type-id-109'/>
-      <return type-id='type-id-16'/>
     </function-decl>
   </abi-instr>
   <abi-instr address-size='64' path='../src/parse-nm.c' comp-dir-path='/home/lukas/canonical/netplan/build' language='LANG_C99'>

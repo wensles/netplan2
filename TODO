@@ -26,8 +26,6 @@
 
 - better parsing/validation for time-based values (ie. bond, bridge params)
 
-- openvswitch integration
-
 - wpa enterprise support
 
 - better parsing/validation for all schema

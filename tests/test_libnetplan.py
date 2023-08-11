@@ -462,82 +462,6 @@ class TestNetDefinition(TestBase):
         netdef = state["eth0"]
         self.assertEqual(os.path.join(self.confdir, "a.yaml"), netdef.filepath)
 
-    def test_filepath_for_ovs_ports(self):
-        state = state_from_yaml(
-            self.confdir,
-            """network:
-  version: 2
-  renderer: networkd
-  bridges:
-    br0:
-      interfaces:
-        - patch0-2
-    br1:
-      interfaces:
-        - patch2-0
-  openvswitch:
-    ports:
-      - [patch0-2, patch2-0]""",
-            filename="a.yaml",
-        )
-        netdef_port1 = state["patch2-0"]
-        netdef_port2 = state["patch0-2"]
-        self.assertEqual(os.path.join(self.confdir, "a.yaml"), netdef_port1.filepath)
-        self.assertEqual(os.path.join(self.confdir, "a.yaml"), netdef_port2.filepath)
-
-    def test_filepath_for_ovs_ports_when_conf_is_redefined(self):
-        state = libnetplan.State()
-        parser = libnetplan.Parser()
-
-        with tempfile.NamedTemporaryFile() as f:
-            f.write(
-                b"""network:
-  version: 2
-  renderer: networkd
-  bridges:
-    br0:
-      interfaces:
-        - patch0-2
-    br1:
-      interfaces:
-        - patch2-0
-  openvswitch:
-    ports:
-      - [patch0-2, patch2-0]"""
-            )
-            f.flush()
-            parser.load_yaml(f.name)
-
-        with tempfile.NamedTemporaryFile() as f:
-            f.write(
-                b"""network:
-  version: 2
-  renderer: networkd
-  bridges:
-    br0:
-      interfaces:
-        - patch0-2
-    br1:
-      interfaces:
-        - patch2-0
-  openvswitch:
-    ports:
-      - [patch0-2, patch2-0]"""
-            )
-            f.flush()
-            parser.load_yaml(f.name)
-            yaml_redefinition_filepath = f.name
-
-        state.import_parser_results(parser)
-        netdef_port1 = state["patch2-0"]
-        netdef_port2 = state["patch0-2"]
-        self.assertEqual(
-            os.path.join(self.confdir, yaml_redefinition_filepath), netdef_port1.filepath
-        )
-        self.assertEqual(
-            os.path.join(self.confdir, yaml_redefinition_filepath), netdef_port2.filepath
-        )
-
     def test_set_name(self):
         state = state_from_yaml(
             self.confdir,
@@ -678,26 +602,6 @@ class TestNetDefinition(TestBase):
         )
 
         self.assertIsNone(state["eth0"].bond_link)
-
-    def test_interface_has_pointer_to_peer(self):
-        state = state_from_yaml(
-            self.confdir,
-            """network:
-  openvswitch:
-    ports:
-      - [patch0-1, patch1-0]
-  bonds:
-    bond0:
-      interfaces:
-        - patch1-0
-  bridges:
-    ovs0:
-      interfaces: [patch0-1, bond0]
-      """,
-        )
-
-        self.assertEqual(state["patch0-1"].peer_link.id, "patch1-0")
-        self.assertEqual(state["patch1-0"].peer_link.id, "patch0-1")
 
 
 class TestFreeFunctions(TestBase):

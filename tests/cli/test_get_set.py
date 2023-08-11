@@ -372,23 +372,6 @@ class TestSet(unittest.TestCase):
         self.assertEqual("NetworkManager", out["network"]["renderer"])
         self.assertNotIn("ethernets", out["network"])
 
-    def test_set_global_ovs(self):
-        with open(self.path, "w") as f:
-            f.write(
-                """network:\n  version: 2
-  ethernets:
-    eth0: {addresses: [1.2.3.4/24]}"""
-            )
-        self._set(['network.openvswitch={"ports": [[port1, port2]], "other-config": null}'])
-        self.assertTrue(os.path.isfile(self.path))
-        with open(self.path, "r") as f:
-            out = yaml.safe_load(f)
-        self.assertIn("network", out)
-        self.assertEqual(2, out["network"]["version"])
-        self.assertEqual("1.2.3.4/24", out["network"]["ethernets"]["eth0"]["addresses"][0])
-        self.assertNotIn("other-config", out["network"]["openvswitch"])
-        self.assertSequenceEqual(["port1", "port2"], out["network"]["openvswitch"]["ports"][0])
-
     def test_set_delete_access_point(self):
         with open(self.path, "w") as f:
             f.write(
@@ -479,35 +462,6 @@ class TestSet(unittest.TestCase):
         self.assertNotIn("eno2", out["network"]["bridges"]["br0"]["parameters"]["port-priority"])
         self.assertEqual(
             14, out["network"]["bridges"]["br0"]["parameters"]["port-priority"]["eno1"]
-        )
-
-    def test_set_delete_ovs_other_config(self):
-        with open(self.path, "w") as f:
-            f.write(
-                """network:
-  version: 2
-  ethernets:
-    eth0:
-      openvswitch:
-        other-config:
-          bogus-option: bogus
-          disable-in-band: true
-      dhcp6: true
-  bridges:
-    ovs0:
-      interfaces: [eth0]
-      openvswitch: {}
-"""
-            )
-        self._set(["ethernets.eth0.openvswitch.other-config.bogus-option=null"])
-
-        with open(self.path, "r") as f:
-            out = yaml.safe_load(f)
-        self.assertNotIn(
-            "bogus-option", out["network"]["ethernets"]["eth0"]["openvswitch"]["other-config"]
-        )
-        self.assertTrue(
-            out["network"]["ethernets"]["eth0"]["openvswitch"]["other-config"]["disable-in-band"]
         )
 
     def test_set_delete_file(self):
