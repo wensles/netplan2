@@ -25,9 +25,9 @@ class TestNetworkd(TestBase):
 
 
 class TestNetworkManager(TestBase):
-
     def test_passthrough_basic(self):
-        self.generate('''network:
+        self.generate(
+            '''network:
   version: 2
   ethernets:
     NM-87749f1d-334f-40b2-98d4-55db58965f5f:
@@ -39,9 +39,12 @@ class TestNetworkManager(TestBase):
         passthrough:
           connection.uuid: 87749f1d-334f-40b2-98d4-55db58965f5f
           connection.type: ethernet
-          connection.permissions: ""''')
+          connection.permissions: ""'''
+        )
 
-        self.assert_nm({'NM-87749f1d-334f-40b2-98d4-55db58965f5f': '''[connection]
+        self.assert_nm(
+            {
+                "NM-87749f1d-334f-40b2-98d4-55db58965f5f": """[connection]
 id=some NM id
 type=ethernet
 uuid=87749f1d-334f-40b2-98d4-55db58965f5f
@@ -56,12 +59,16 @@ method=link-local
 
 [ipv6]
 method=ignore
-'''}, '''[device-netplan.ethernets.NM-87749f1d-334f-40b2-98d4-55db58965f5f]
+"""
+            },
+            """[device-netplan.ethernets.NM-87749f1d-334f-40b2-98d4-55db58965f5f]
 match-device=type:ethernet
-managed=1\n\n''')
+managed=1\n\n""",
+        )
 
     def test_passthrough_wifi(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   wifis:
     NM-87749f1d-334f-40b2-98d4-55db58965f5f:
@@ -76,9 +83,12 @@ managed=1\n\n''')
               connection.permissions: ""
               wifi.ssid: SOME-SSID
         "OTHER-SSID":
-          hidden: true''')
+          hidden: true"""
+        )
 
-        self.assert_nm({'NM-87749f1d-334f-40b2-98d4-55db58965f5f-SOME-SSID': '''[connection]
+        self.assert_nm(
+            {
+                "NM-87749f1d-334f-40b2-98d4-55db58965f5f-SOME-SSID": """[connection]
 id=myid with spaces
 type=wifi
 uuid=87749f1d-334f-40b2-98d4-55db58965f5f
@@ -94,8 +104,8 @@ method=ignore
 [wifi]
 ssid=SOME-SSID
 mode=infrastructure
-''',
-                        'NM-87749f1d-334f-40b2-98d4-55db58965f5f-OTHER-SSID': '''[connection]
+""",
+                "NM-87749f1d-334f-40b2-98d4-55db58965f5f-OTHER-SSID": """[connection]
 id=netplan-NM-87749f1d-334f-40b2-98d4-55db58965f5f-OTHER-SSID
 type=wifi
 
@@ -109,12 +119,16 @@ method=ignore
 ssid=OTHER-SSID
 mode=infrastructure
 hidden=true
-'''}, '''[device-netplan.wifis.NM-87749f1d-334f-40b2-98d4-55db58965f5f]
+""",
+            },
+            """[device-netplan.wifis.NM-87749f1d-334f-40b2-98d4-55db58965f5f]
 match-device=type:wifi
-managed=1\n\n''')
+managed=1\n\n""",
+        )
 
     def test_passthrough_type_nm_devices(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   nm-devices:
     NM-87749f1d-334f-40b2-98d4-55db58965f5f:
       renderer: NetworkManager
@@ -122,9 +136,12 @@ managed=1\n\n''')
       networkmanager:
         passthrough:
           connection.uuid: 87749f1d-334f-40b2-98d4-55db58965f5f
-          connection.type: dummy''')  # wokeignore:rule=dummy
+          connection.type: dummy"""
+        )  # wokeignore:rule=dummy
 
-        self.assert_nm({'NM-87749f1d-334f-40b2-98d4-55db58965f5f': '''[connection]
+        self.assert_nm(
+            {
+                "NM-87749f1d-334f-40b2-98d4-55db58965f5f": """[connection]
 id=netplan-NM-87749f1d-334f-40b2-98d4-55db58965f5f
 #Netplan: passthrough setting
 uuid=87749f1d-334f-40b2-98d4-55db58965f5f
@@ -136,12 +153,16 @@ method=link-local
 
 [ipv6]
 method=ignore
-'''}, '''[device-netplan.nm-devices.NM-87749f1d-334f-40b2-98d4-55db58965f5f]
+"""
+            },
+            """[device-netplan.nm-devices.NM-87749f1d-334f-40b2-98d4-55db58965f5f]
 match-device=type:dummy # wokeignore:rule=dummy
-managed=1\n\n''')
+managed=1\n\n""",
+        )
 
     def test_passthrough_dotted_group(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   nm-devices:
     dotted-group-test:
       renderer: NetworkManager
@@ -149,9 +170,12 @@ managed=1\n\n''')
       networkmanager:
         passthrough:
           connection.type: "wireguard"
-          wireguard-peer.some-key.endpoint: 1.2.3.4''')
+          wireguard-peer.some-key.endpoint: 1.2.3.4"""
+        )
 
-        self.assert_nm({'dotted-group-test': '''[connection]
+        self.assert_nm(
+            {
+                "dotted-group-test": """[connection]
 id=netplan-dotted-group-test
 #Netplan: passthrough setting
 type=wireguard
@@ -165,12 +189,16 @@ method=ignore
 [wireguard-peer.some-key]
 #Netplan: passthrough setting
 endpoint=1.2.3.4
-'''}, '''[device-netplan.nm-devices.dotted-group-test]
+"""
+            },
+            """[device-netplan.nm-devices.dotted-group-test]
 match-device=type:wireguard
-managed=1\n\n''')
+managed=1\n\n""",
+        )
 
     def test_passthrough_dotted_key(self):
-        self.generate('''network:
+        self.generate(
+            '''network:
   ethernets:
     dotted-key-test:
       renderer: NetworkManager
@@ -179,9 +207,12 @@ managed=1\n\n''')
         passthrough:
           tc.qdisc.root: something
           tc.qdisc.fff1: ":abc"
-          tc.filters.test: "test"''')
+          tc.filters.test: "test"'''
+        )
 
-        self.assert_nm({'dotted-key-test': '''[connection]
+        self.assert_nm(
+            {
+                "dotted-key-test": """[connection]
 id=netplan-dotted-key-test
 type=ethernet
 
@@ -201,12 +232,16 @@ qdisc.root=something
 qdisc.fff1=:abc
 #Netplan: passthrough setting
 filters.test=test
-'''}, '''[device-netplan.ethernets.dotted-key-test]
+"""
+            },
+            """[device-netplan.ethernets.dotted-key-test]
 match-device=type:ethernet
-managed=1\n\n''')
+managed=1\n\n""",
+        )
 
     def test_passthrough_unsupported_setting(self):
-        self.generate('''network:
+        self.generate(
+            '''network:
   wifis:
     test:
       renderer: NetworkManager
@@ -215,9 +250,12 @@ managed=1\n\n''')
         "SOME-SSID": # implicit "mode: infrasturcutre"
           networkmanager:
             passthrough:
-              wifi.mode: "mesh"''')
+              wifi.mode: "mesh"'''
+        )
 
-        self.assert_nm({'test-SOME-SSID': '''[connection]
+        self.assert_nm(
+            {
+                "test-SOME-SSID": """[connection]
 id=netplan-test-SOME-SSID
 type=wifi
 
@@ -231,21 +269,28 @@ method=ignore
 ssid=SOME-SSID
 #Netplan: passthrough override
 mode=mesh
-'''}, '''[device-netplan.wifis.test]
+"""
+            },
+            """[device-netplan.wifis.test]
 match-device=type:wifi
-managed=1\n\n''')
+managed=1\n\n""",
+        )
 
     def test_passthrough_empty_group(self):
-        self.generate('''network:
+        self.generate(
+            '''network:
   ethernets:
     test:
       renderer: NetworkManager
       match: {}
       networkmanager:
         passthrough:
-          proxy._: ""''')
+          proxy._: ""'''
+        )
 
-        self.assert_nm({'test': '''[connection]
+        self.assert_nm(
+            {
+                "test": """[connection]
 id=netplan-test
 type=ethernet
 
@@ -259,12 +304,16 @@ method=link-local
 method=ignore
 
 [proxy]
-'''}, '''[device-netplan.ethernets.test]
+"""
+            },
+            """[device-netplan.ethernets.test]
 match-device=type:ethernet
-managed=1\n\n''')
+managed=1\n\n""",
+        )
 
     def test_passthrough_interface_rename_existing_id(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
@@ -281,9 +330,12 @@ managed=1\n\n''')
       networkmanager:
         uuid: 626dd384-8b3d-3690-9511-192b2c79b3fd
         name: "netplan-eth0"
-''')
+"""
+        )
 
-        self.assert_nm({'eth0': '''[connection]
+        self.assert_nm(
+            {
+                "eth0": """[connection]
 id=netplan-eth0
 type=ethernet
 uuid=626dd384-8b3d-3690-9511-192b2c79b3fd
@@ -297,10 +349,13 @@ method=auto
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
 
     def test_passthrough_ip6_privacy_default(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
@@ -312,9 +367,12 @@ method=ignore
         name: "netplan-eth0"
         passthrough:
           "ipv6.ip6-privacy": "-1"
-''')
+"""
+        )
 
-        self.assert_nm({'eth0': '''[connection]
+        self.assert_nm(
+            {
+                "eth0": """[connection]
 id=netplan-eth0
 type=ethernet
 uuid=626dd384-8b3d-3690-9511-192b2c79b3fd
@@ -328,4 +386,6 @@ method=auto
 
 [ipv6]
 method=auto
-'''})
+"""
+            }
+        )

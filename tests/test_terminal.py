@@ -27,7 +27,6 @@ import netplan.terminal
 
 @unittest.skipUnless(sys.__stdin__.isatty(), "not supported when run from a script")
 class TestTerminal(unittest.TestCase):
-
     def setUp(self):
         self.terminal = netplan.terminal.Terminal(sys.stdin.fileno())
 
@@ -69,10 +68,10 @@ class TestTerminal(unittest.TestCase):
         self.terminal.save(orig_settings)
         self.terminal.disable_nonblocking_io()
         flags = fcntl.fcntl(self.terminal.fd, fcntl.F_GETFL)
-        self.assertNotEqual(flags, orig_settings.get('flags'))
+        self.assertNotEqual(flags, orig_settings.get("flags"))
         self.terminal.reset(orig_settings)
         flags = fcntl.fcntl(self.terminal.fd, fcntl.F_GETFL)
-        self.assertEqual(flags, orig_settings.get('flags'))
+        self.assertEqual(flags, orig_settings.get("flags"))
         self.terminal.disable_nonblocking_io()
 
     def test_reset(self):

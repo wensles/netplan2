@@ -24,26 +24,29 @@ import ctypes.util
 from .base import TestKeyfileBase
 
 rootdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-exe_cli = os.path.join(rootdir, 'src', 'netplan.script')
+exe_cli = os.path.join(rootdir, "src", "netplan.script")
 
-lib = ctypes.CDLL(ctypes.util.find_library('netplan'))
+lib = ctypes.CDLL(ctypes.util.find_library("netplan"))
 lib.netplan_get_id_from_nm_filename.restype = ctypes.c_char_p
-UUID = 'ff9d6ebc-226d-4f82-a485-b7ff83b9607f'
+UUID = "ff9d6ebc-226d-4f82-a485-b7ff83b9607f"
 
 
 class TestNetworkManagerKeyfileParser(TestKeyfileBase):
-    '''Test NM keyfile parser as used by NetworkManager's YAML backend'''
+    """Test NM keyfile parser as used by NetworkManager's YAML backend"""
 
     def test_keyfile_missing_uuid(self):
-        err = self.generate_from_keyfile('[connection]\ntype=ethernets', expect_fail=True)
-        self.assertIn('netplan: Keyfile: cannot find connection.uuid', err)
+        err = self.generate_from_keyfile("[connection]\ntype=ethernets", expect_fail=True)
+        self.assertIn("netplan: Keyfile: cannot find connection.uuid", err)
 
     def test_keyfile_missing_type(self):
-        err = self.generate_from_keyfile('[connection]\nuuid=87749f1d-334f-40b2-98d4-55db58965f5f', expect_fail=True)
-        self.assertIn('netplan: Keyfile: cannot find connection.type', err)
+        err = self.generate_from_keyfile(
+            "[connection]\nuuid=87749f1d-334f-40b2-98d4-55db58965f5f", expect_fail=True
+        )
+        self.assertIn("netplan: Keyfile: cannot find connection.type", err)
 
     def test_keyfile_gsm(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 id=T-Mobile Funkadelic 2
 uuid={}
 type=gsm
@@ -68,8 +71,13 @@ method=auto
 dns-search=
 method=auto
 ip6-privacy=0
-'''.format(UUID))
-        self.assert_netplan({UUID: '''network:
+""".format(
+                UUID
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   modems:
     NM-{}:
@@ -93,10 +101,15 @@ ip6-privacy=0
           gsm.home-only: "true"
           ipv4.dns-search: ""
           ipv6.dns-search: ""
-'''.format(UUID, UUID)})
+""".format(
+                    UUID, UUID
+                )
+            }
+        )
 
     def test_keyfile_cdma(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 id=T-Mobile Funkadelic 2
 uuid={}
 type=cdma
@@ -112,8 +125,13 @@ method=auto
 
 [ipv6]
 method=ignore
-'''.format(UUID))
-        self.assert_netplan({UUID: '''network:
+""".format(
+                UUID
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   modems:
     NM-{}:
@@ -127,10 +145,15 @@ method=ignore
       networkmanager:
         uuid: "{}"
         name: "T-Mobile Funkadelic 2"
-'''.format(UUID, UUID)})
+""".format(
+                    UUID, UUID
+                )
+            }
+        )
 
     def test_keyfile_gsm_via_bluetooth(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 id=T-Mobile Funkadelic 2
 uuid={}
 type=bluetooth
@@ -154,8 +177,13 @@ method=auto
 dns-search=
 method=auto
 
-[proxy]'''.format(UUID))
-        self.assert_netplan({UUID: '''network:
+[proxy]""".format(
+                UUID
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   nm-devices:
     NM-{}:
@@ -179,10 +207,15 @@ method=auto
           ipv6.dns-search: ""
           ipv6.method: "auto"
           proxy._: ""
-'''.format(UUID, UUID)})
+""".format(
+                    UUID, UUID
+                )
+            }
+        )
 
     def test_keyfile_method_auto(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 id=Test
 uuid={}
 type=ethernet
@@ -209,8 +242,13 @@ never-default=true
 route-metric=4242
 
 [proxy]
-'''.format(UUID))
-        self.assert_netplan({UUID: '''network:
+""".format(
+                UUID
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   ethernets:
     NM-{}:
@@ -234,10 +272,15 @@ route-metric=4242
           ipv4.dns-search: ""
           ipv6.dns-search: ""
           proxy._: ""
-'''.format(UUID, UUID)})
+""".format(
+                    UUID, UUID
+                )
+            }
+        )
 
     def test_keyfile_fail_validation(self):
-        err = self.generate_from_keyfile('''[connection]
+        err = self.generate_from_keyfile(
+            """[connection]
 id=Test
 uuid={}
 type=ethernet
@@ -252,11 +295,16 @@ method=auto
 addr-gen-mode=eui64
 token=::42
 method=auto
-'''.format(UUID), expect_fail=True)
-        self.assertIn('Error in network definition:', err)
+""".format(
+                UUID
+            ),
+            expect_fail=True,
+        )
+        self.assertIn("Error in network definition:", err)
 
     def test_keyfile_method_manual(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 id=Test
 uuid={}
 type=ethernet
@@ -288,8 +336,13 @@ route1_options=unknown=invalid,
 route2=4:5:6:7:8:9:0:1/63,,5
 
 [proxy]
-'''.format(UUID))
-        self.assert_netplan({UUID: '''network:
+""".format(
+                UUID
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   ethernets:
     NM-{}:
@@ -338,60 +391,74 @@ route2=4:5:6:7:8:9:0:1/63,,5
           ipv6.route1: "dead:beef::1/128,2001:1234::2"
           ipv6.route1_options: "unknown=invalid,"
           proxy._: ""
-'''.format(UUID, UUID)})
+""".format(
+                    UUID, UUID
+                )
+            }
+        )
 
     def _template_keyfile_type(self, nd_type, nm_type, supported=True):
         self.maxDiff = None
-        file = os.path.join(self.workdir.name, 'tmp/some.keyfile')
+        file = os.path.join(self.workdir.name, "tmp/some.keyfile")
         os.makedirs(os.path.dirname(file))
-        with open(file, 'w') as f:
-            f.write('[connection]\ntype={}\nuuid={}'.format(nm_type, UUID))
+        with open(file, "w") as f:
+            f.write("[connection]\ntype={}\nuuid={}".format(nm_type, UUID))
         self.assertEqual(lib.netplan_clear_netdefs(), 0)
         lib.netplan_parse_keyfile(file.encode(), None)
-        lib._write_netplan_conf('NM-{}'.format(UUID).encode(), self.workdir.name.encode())
+        lib._write_netplan_conf("NM-{}".format(UUID).encode(), self.workdir.name.encode())
         lib.netplan_clear_netdefs()
-        self.assertTrue(os.path.isfile(os.path.join(self.confdir, '90-NM-{}.yaml'.format(UUID))))
-        t = '\n        passthrough:\n          connection.type: "{}"'.format(nm_type) if not supported else ''
-        match = '\n      match: {}' if nd_type in ['ethernets', 'modems', 'wifis'] else ''
-        with open(os.path.join(self.confdir, '90-NM-{}.yaml'.format(UUID)), 'r') as f:
-            self.assertEqual(f.read(), '''network:
+        self.assertTrue(os.path.isfile(os.path.join(self.confdir, "90-NM-{}.yaml".format(UUID))))
+        t = (
+            '\n        passthrough:\n          connection.type: "{}"'.format(nm_type)
+            if not supported
+            else ""
+        )
+        match = "\n      match: {}" if nd_type in ["ethernets", "modems", "wifis"] else ""
+        with open(os.path.join(self.confdir, "90-NM-{}.yaml".format(UUID)), "r") as f:
+            self.assertEqual(
+                f.read(),
+                """network:
   version: 2
   {}:
     NM-{}:
       renderer: NetworkManager{}
       networkmanager:
         uuid: "{}"{}
-'''.format(nd_type, UUID, match, UUID, t))
+""".format(
+                    nd_type, UUID, match, UUID, t
+                ),
+            )
 
     def test_keyfile_ethernet(self):
-        self._template_keyfile_type('ethernets', 'ethernet')
+        self._template_keyfile_type("ethernets", "ethernet")
 
     def test_keyfile_type_modem_gsm(self):
-        self._template_keyfile_type('modems', 'gsm')
+        self._template_keyfile_type("modems", "gsm")
 
     def test_keyfile_type_modem_cdma(self):
-        self._template_keyfile_type('modems', 'cdma')
+        self._template_keyfile_type("modems", "cdma")
 
     def test_keyfile_type_bridge(self):
-        self._template_keyfile_type('bridges', 'bridge')
+        self._template_keyfile_type("bridges", "bridge")
 
     def test_keyfile_type_bond(self):
-        self._template_keyfile_type('bonds', 'bond')
+        self._template_keyfile_type("bonds", "bond")
 
     def test_keyfile_type_vlan(self):
-        self._template_keyfile_type('nm-devices', 'vlan', False)
+        self._template_keyfile_type("nm-devices", "vlan", False)
 
     def test_keyfile_type_tunnel(self):
-        self._template_keyfile_type('nm-devices', 'ip-tunnel', False)
+        self._template_keyfile_type("nm-devices", "ip-tunnel", False)
 
     def test_keyfile_type_wireguard(self):
-        self._template_keyfile_type('nm-devices', 'wireguard', False)
+        self._template_keyfile_type("nm-devices", "wireguard", False)
 
     def test_keyfile_type_other(self):
-        self._template_keyfile_type('nm-devices', 'dummy', False)  # wokeignore:rule=dummy
+        self._template_keyfile_type("nm-devices", "dummy", False)  # wokeignore:rule=dummy
 
     def test_keyfile_type_wifi(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 type=wifi
 uuid={}
 permissions=
@@ -413,8 +480,13 @@ key-mgmt=ieee8021x
 
 [ipv4]
 method=auto
-dns-search='''.format(UUID))
-        self.assert_netplan({UUID: '''network:
+dns-search=""".format(
+                UUID
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   wifis:
     NM-{}:
@@ -441,10 +513,15 @@ dns-search='''.format(UUID))
       networkmanager:
         uuid: "{}"
         name: "myid with spaces"
-'''.format(UUID, UUID, UUID)})
+""".format(
+                    UUID, UUID, UUID
+                )
+            }
+        )
 
     def _template_keyfile_type_wifi_eap(self, method):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 type=wifi
 uuid={}
 permissions=
@@ -471,8 +548,13 @@ phase2-auth=chap
 
 [ipv4]
 method=auto
-dns-search='''.format(UUID, method))
-        self.assert_netplan({UUID: '''network:
+dns-search=""".format(
+                UUID, method
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   wifis:
     NM-{}:
@@ -502,19 +584,24 @@ dns-search='''.format(UUID, method))
       networkmanager:
         uuid: "{}"
         name: "testnet"
-'''.format(UUID, method, UUID, UUID)})
+""".format(
+                    UUID, method, UUID, UUID
+                )
+            }
+        )
 
     def test_keyfile_type_wifi_eap_peap(self):
-        self._template_keyfile_type_wifi_eap('peap')
+        self._template_keyfile_type_wifi_eap("peap")
 
     def test_keyfile_type_wifi_eap_tls(self):
-        self._template_keyfile_type_wifi_eap('tls')
+        self._template_keyfile_type_wifi_eap("tls")
 
     def test_keyfile_type_wifi_eap_ttls(self):
-        self._template_keyfile_type_wifi_eap('ttls')
+        self._template_keyfile_type_wifi_eap("ttls")
 
     def _template_keyfile_type_wifi(self, nd_mode, nm_mode):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 type=wifi
 uuid={}
 id=myid with spaces
@@ -526,16 +613,23 @@ method=auto
 ssid=SOME-SSID
 wake-on-wlan=24
 band=bg
-mode={}'''.format(UUID, nm_mode))
-        wifi_mode = ''
-        ap_mode = ''
+mode={}""".format(
+                UUID, nm_mode
+            )
+        )
+        wifi_mode = ""
+        ap_mode = ""
         if nm_mode != nd_mode:
             wifi_mode = '''
             passthrough:
-              wifi.mode: "{}"'''.format(nm_mode)
-        if nd_mode != 'infrastructure':
+              wifi.mode: "{}"'''.format(
+                nm_mode
+            )
+        if nd_mode != "infrastructure":
             ap_mode = '\n          mode: "%s"' % nd_mode
-        self.assert_netplan({UUID: '''network:
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   wifis:
     NM-{}:
@@ -554,10 +648,15 @@ mode={}'''.format(UUID, nm_mode))
       networkmanager:
         uuid: "{}"
         name: "myid with spaces"
-'''.format(UUID, ap_mode, UUID, wifi_mode, UUID)})
+""".format(
+                    UUID, ap_mode, UUID, wifi_mode, UUID
+                )
+            }
+        )
 
     def test_keyfile_type_wifi_ap(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 type=wifi
 uuid={}
 id=myid with spaces
@@ -569,8 +668,13 @@ method=shared
 ssid=SOME-SSID
 wake-on-wlan=24
 band=bg
-mode=ap'''.format(UUID))
-        self.assert_netplan({UUID: '''network:
+mode=ap""".format(
+                UUID
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   wifis:
     NM-{}:
@@ -589,22 +693,29 @@ mode=ap'''.format(UUID))
       networkmanager:
         uuid: "{}"
         name: "myid with spaces"
-'''.format(UUID, UUID, UUID)})
+""".format(
+                    UUID, UUID, UUID
+                )
+            }
+        )
 
     def test_keyfile_type_wifi_adhoc(self):
-        self._template_keyfile_type_wifi('adhoc', 'adhoc')
+        self._template_keyfile_type_wifi("adhoc", "adhoc")
 
     def test_keyfile_type_wifi_unknown(self):
-        self._template_keyfile_type_wifi('infrastructure', 'mesh')
+        self._template_keyfile_type_wifi("infrastructure", "mesh")
 
     def test_keyfile_type_wifi_missing_ssid(self):
-        err = self.generate_from_keyfile('''[connection]\ntype=wifi\nuuid={}\nid=myid with spaces'''
-                                         .format(UUID), expect_fail=True)
-        self.assertFalse(os.path.isfile(os.path.join(self.confdir, '90-NM-{}.yaml'.format(UUID))))
-        self.assertIn('netplan: Keyfile: cannot find SSID for WiFi connection', err)
+        err = self.generate_from_keyfile(
+            """[connection]\ntype=wifi\nuuid={}\nid=myid with spaces""".format(UUID),
+            expect_fail=True,
+        )
+        self.assertFalse(os.path.isfile(os.path.join(self.confdir, "90-NM-{}.yaml".format(UUID))))
+        self.assertIn("netplan: Keyfile: cannot find SSID for WiFi connection", err)
 
     def test_keyfile_wake_on_lan(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 type=ethernet
 uuid={}
 id=myid with spaces
@@ -613,8 +724,13 @@ id=myid with spaces
 wake-on-lan=2
 
 [ipv4]
-method=auto'''.format(UUID))
-        self.assert_netplan({UUID: '''network:
+method=auto""".format(
+                UUID
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   ethernets:
     NM-{}:
@@ -627,10 +743,15 @@ method=auto'''.format(UUID))
         name: "myid with spaces"
         passthrough:
           ethernet.wake-on-lan: "2"
-'''.format(UUID, UUID)})
+""".format(
+                    UUID, UUID
+                )
+            }
+        )
 
     def test_keyfile_wake_on_lan_nm_default(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 type=ethernet
 uuid={}
 id=myid with spaces
@@ -639,8 +760,13 @@ id=myid with spaces
 wake-on-lan=0
 
 [ipv4]
-method=auto'''.format(UUID))
-        self.assert_netplan({UUID: '''network:
+method=auto""".format(
+                UUID
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   ethernets:
     NM-{}:
@@ -650,10 +776,15 @@ method=auto'''.format(UUID))
       networkmanager:
         uuid: "{}"
         name: "myid with spaces"
-'''.format(UUID, UUID)})
+""".format(
+                    UUID, UUID
+                )
+            }
+        )
 
     def test_keyfile_modem_gsm(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 type=gsm
 uuid={}
 id=myid with spaces
@@ -662,8 +793,13 @@ id=myid with spaces
 method=auto
 
 [gsm]
-auto-config=true'''.format(UUID))
-        self.assert_netplan({UUID: '''network:
+auto-config=true""".format(
+                UUID
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   modems:
     NM-{}:
@@ -674,18 +810,29 @@ auto-config=true'''.format(UUID))
       networkmanager:
         uuid: "{}"
         name: "myid with spaces"
-'''.format(UUID, UUID)})
+""".format(
+                    UUID, UUID
+                )
+            }
+        )
 
     def test_keyfile_existing_id(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 type=bridge
 interface-name=mybr
 uuid={}
 id=renamed netplan bridge
 
 [ipv4]
-method=auto'''.format(UUID), netdef_id='mybr')
-        self.assert_netplan({UUID: '''network:
+method=auto""".format(
+                UUID
+            ),
+            netdef_id="mybr",
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   bridges:
     mybr:
@@ -694,10 +841,15 @@ method=auto'''.format(UUID), netdef_id='mybr')
       networkmanager:
         uuid: "{}"
         name: "renamed netplan bridge"
-'''.format(UUID)})
+""".format(
+                    UUID
+                )
+            }
+        )
 
     def test_keyfile_yaml_wifi_hotspot(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 id=Hotspot-1
 type=wifi
 uuid={}
@@ -727,8 +879,13 @@ pairwise=ccmp;
 proto=rsn;
 psk=test1234
 
-[proxy]'''.format(UUID))
-        self.assert_netplan({UUID: '''network:
+[proxy]""".format(
+                UUID
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   wifis:
     NM-{}:
@@ -758,10 +915,15 @@ psk=test1234
       networkmanager:
         uuid: "{}"
         name: "Hotspot-1"
-'''.format(UUID, UUID, UUID)})
+""".format(
+                    UUID, UUID, UUID
+                )
+            }
+        )
 
     def test_keyfile_ip4_linklocal_ip6_ignore(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 id=netplan-eth1
 type=ethernet
 interface-name=eth1
@@ -775,8 +937,13 @@ method=link-local
 
 [ipv6]
 method=ignore
-'''.format(UUID))
-        self.assert_netplan({UUID: '''network:
+""".format(
+                UUID
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   ethernets:
     NM-{}:
@@ -786,10 +953,15 @@ method=ignore
       networkmanager:
         uuid: "{}"
         name: "netplan-eth1"
-'''.format(UUID, UUID)})
+""".format(
+                    UUID, UUID
+                )
+            }
+        )
 
     def test_keyfile_vlan(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 id=netplan-enblue
 type=vlan
 interface-name=enblue
@@ -805,8 +977,13 @@ address1=1.2.3.4/24
 
 [ipv6]
 method=ignore
-'''.format(UUID))
-        self.assert_netplan({UUID: '''network:
+""".format(
+                UUID
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   nm-devices:
     NM-{}:
@@ -822,10 +999,15 @@ method=ignore
           ipv4.method: "manual"
           ipv4.address1: "1.2.3.4/24"
           ipv6.method: "ignore"
-'''.format(UUID, UUID)})
+""".format(
+                    UUID, UUID
+                )
+            }
+        )
 
     def test_keyfile_bridge(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 id=netplan-br0
 type=bridge
 interface-name=br0
@@ -844,8 +1026,16 @@ method=auto
 
 [ipv6]
 method=ignore
-'''.format(UUID), netdef_id='br0', expect_fail=False, filename="netplan-br0.nmconnection")
-        self.assert_netplan({UUID: '''network:
+""".format(
+                UUID
+            ),
+            netdef_id="br0",
+            expect_fail=False,
+            filename="netplan-br0.nmconnection",
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   bridges:
     br0:
@@ -861,10 +1051,15 @@ method=ignore
       networkmanager:
         uuid: "{}"
         name: "netplan-br0"
-'''.format(UUID)})
+""".format(
+                    UUID
+                )
+            }
+        )
 
     def test_keyfile_bridge_default_stp(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 id=netplan-br0
 type=bridge
 interface-name=br0
@@ -878,8 +1073,14 @@ method=auto
 
 [ipv6]
 method=ignore
-'''.format(UUID), netdef_id='br0')
-        self.assert_netplan({UUID: '''network:
+""".format(
+                UUID
+            ),
+            netdef_id="br0",
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   bridges:
     br0:
@@ -890,10 +1091,15 @@ method=ignore
       networkmanager:
         uuid: "{}"
         name: "netplan-br0"
-'''.format(UUID)})
+""".format(
+                    UUID
+                )
+            }
+        )
 
     def test_keyfile_bond(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 uuid={}
 id=netplan-bn0
 type=bond
@@ -926,8 +1132,16 @@ method=auto
 
 [ipv6]
 method=ignore
-'''.format(UUID), netdef_id='bn0', expect_fail=False, filename='some.keyfile')
-        self.assert_netplan({UUID: '''network:
+""".format(
+                UUID
+            ),
+            netdef_id="bn0",
+            expect_fail=False,
+            filename="some.keyfile",
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   bonds:
     bn0:
@@ -958,10 +1172,15 @@ method=ignore
       networkmanager:
         uuid: "{}"
         name: "netplan-bn0"
-'''.format(UUID)})
+""".format(
+                    UUID
+                )
+            }
+        )
 
     def test_keyfile_customer_A1(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 id=netplan-wlan0-TESTSSID
 type=wifi
 interface-name=wlan0
@@ -980,8 +1199,13 @@ mode=infrastructure
 [wifi-security]
 key-mgmt=wpa-psk
 psk=s0s3cr1t
-'''.format(UUID))
-        self.assert_netplan({UUID: '''network:
+""".format(
+                UUID
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   wifis:
     NM-{}:
@@ -1000,10 +1224,15 @@ psk=s0s3cr1t
       networkmanager:
         uuid: "{}"
         name: "netplan-wlan0-TESTSSID"
-'''.format(UUID, UUID)})
+""".format(
+                    UUID, UUID
+                )
+            }
+        )
 
     def test_keyfile_customer_A2(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 id=gsm
 type=gsm
 uuid={}
@@ -1023,8 +1252,13 @@ dns=8.8.8.8;8.8.4.4;
 method=auto
 addr-gen-mode=1
 ip6-privacy=0
-'''.format(UUID))
-        self.assert_netplan({UUID: '''network:
+""".format(
+                UUID
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   modems:
     NM-{}:
@@ -1046,10 +1280,15 @@ ip6-privacy=0
           ipv4.address2: "10.10.164.254/24"
           ipv4.address3: "10.10.246.132/24"
           ipv6.addr-gen-mode: "1"
-'''.format(UUID, UUID)})
+""".format(
+                    UUID, UUID
+                )
+            }
+        )
 
     def test_keyfile_netplan0103_compat(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 id=Work Wired
 uuid={}
 type=ethernet
@@ -1088,8 +1327,13 @@ route3=4:5:6:7:8:9:0:1/63,::,5
 route4=5:6:7:8:9:0:1:2/62
 
 [proxy]
-'''.format(UUID))
-        self.assert_netplan({UUID: '''network:
+""".format(
+                UUID
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   ethernets:
     NM-{}:
@@ -1151,10 +1395,15 @@ route4=5:6:7:8:9:0:1:2/62
           ipv6.dns-search: "wallaceandgromit.com;"
           ipv6.ip6-privacy: "1"
           proxy._: ""
-'''.format(UUID, UUID)})
+""".format(
+                    UUID, UUID
+                )
+            }
+        )
 
     def test_keyfile_tunnel_regression_lp1952967(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 id=IP tunnel connection 1
 uuid={}
 type=ip-tunnel
@@ -1177,8 +1426,13 @@ dns-search=
 method=auto
 
 [proxy]
-'''.format(UUID))
-        self.assert_netplan({UUID: '''network:
+""".format(
+                UUID
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   nm-devices:
     NM-{}:
@@ -1200,10 +1454,15 @@ method=auto
           ipv6.dns-search: ""
           ipv6.method: "auto"
           proxy._: ""
-'''.format(UUID, UUID)})
+""".format(
+                    UUID, UUID
+                )
+            }
+        )
 
     def test_keyfile_ip6_privacy_default_netplan_0104_compat(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 id=Test
 uuid={}
 type=ethernet
@@ -1216,8 +1475,13 @@ method=auto
 
 [ipv6]
 method=auto
-'''.format(UUID))
-        self.assert_netplan({UUID: '''network:
+""".format(
+                UUID
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   ethernets:
     NM-{}:
@@ -1232,10 +1496,15 @@ method=auto
         name: "Test"
         passthrough:
           ipv6.ip6-privacy: "-1"
-'''.format(UUID, UUID)})
+""".format(
+                    UUID, UUID
+                )
+            }
+        )
 
     def test_keyfile_wpa3_sae(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 id=test2
 uuid={}
 type=wifi
@@ -1257,8 +1526,13 @@ addr-gen-mode=stable-privacy
 method=auto
 
 [proxy]
-'''.format(UUID))
-        self.assert_netplan({UUID: '''network:
+""".format(
+                UUID
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   wifis:
     NM-{}:
@@ -1283,10 +1557,15 @@ method=auto
       networkmanager:
         uuid: "{}"
         name: "test2"
-'''.format(UUID, UUID)})
+""".format(
+                    UUID, UUID
+                )
+            }
+        )
 
     def test_keyfile_dns_search_ip4_ip6_conflict(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 id=Work Wired
 type=ethernet
 uuid={}
@@ -1312,8 +1591,13 @@ addr-gen-mode=1
 dns=1::cafe;2::cafe;
 dns-search=wallaceandgromit.com;
 
-[proxy]\n'''.format(UUID))
-        self.assert_netplan({UUID: '''network:
+[proxy]\n""".format(
+                UUID
+            )
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   ethernets:
     NM-{}:
@@ -1346,10 +1630,15 @@ dns-search=wallaceandgromit.com;
           ipv6.dns-search: "wallaceandgromit.com;"
           ipv6.ip6-privacy: "-1"
           proxy._: ""
-'''.format(UUID, UUID)})
+""".format(
+                    UUID, UUID
+                )
+            }
+        )
 
     def test_keyfile_nm_140_default_ethernet_group(self):
-        self.generate_from_keyfile('''[connection]
+        self.generate_from_keyfile(
+            """[connection]
 id=Test Write Bridge Main
 uuid={}
 type=bridge
@@ -1367,8 +1656,14 @@ method=manual
 addr-gen-mode=default
 method=auto
 
-[proxy]\n'''.format(UUID), netdef_id='br0')
-        self.assert_netplan({UUID: '''network:
+[proxy]\n""".format(
+                UUID
+            ),
+            netdef_id="br0",
+        )
+        self.assert_netplan(
+            {
+                UUID: """network:
   version: 2
   bridges:
     br0:
@@ -1387,4 +1682,8 @@ method=auto
           ipv6.addr-gen-mode: "default"
           ipv6.ip6-privacy: "-1"
           proxy._: ""
-'''.format(UUID)})
+""".format(
+                    UUID
+                )
+            }
+        )

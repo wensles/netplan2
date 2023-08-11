@@ -20,27 +20,34 @@ from .base import TestBase, NM_MANAGED
 
 
 class TestNetworkd(TestBase):
-    '''networkd output'''
+    """networkd output"""
 
     def test_not_supported(self):
         # does not produce any output, but fails with:
         # "networkd backend does not support GSM modem configuration"
-        err = self.generate('''network:
+        err = self.generate(
+            """network:
   version: 2
   modems:
     mobilephone:
-      auto-config: true''', expect_fail=True)
-        self.assertIn("ERROR: mobilephone: networkd backend does not support GSM/CDMA modem configuration", err)
+      auto-config: true""",
+            expect_fail=True,
+        )
+        self.assertIn(
+            "ERROR: mobilephone: networkd backend does not support GSM/CDMA modem configuration",
+            err,
+        )
 
         self.assert_networkd({})
         self.assert_nm({})
 
 
 class TestNetworkManager(TestBase):
-    '''networkmanager output'''
+    """networkmanager output"""
 
     def test_cdma_config(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   modems:
@@ -48,8 +55,11 @@ class TestNetworkManager(TestBase):
       mtu: 1542
       number: "#666"
       username: test-user
-      password: s0s3kr1t''')
-        self.assert_nm({'mobilephone': '''[connection]
+      password: s0s3kr1t"""
+        )
+        self.assert_nm(
+            {
+                "mobilephone": """[connection]
 id=netplan-mobilephone
 type=cdma
 interface-name=mobilephone
@@ -65,18 +75,24 @@ method=link-local
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'mobilephone')
+        self.assert_nm_udev(NM_MANAGED % "mobilephone")
 
     def test_gsm_auto_config(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   modems:
     mobilephone:
-      auto-config: true''')
-        self.assert_nm({'mobilephone': '''[connection]
+      auto-config: true"""
+        )
+        self.assert_nm(
+            {
+                "mobilephone": """[connection]
 id=netplan-mobilephone
 type=gsm
 interface-name=mobilephone
@@ -89,20 +105,26 @@ method=link-local
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'mobilephone')
+        self.assert_nm_udev(NM_MANAGED % "mobilephone")
 
     def test_gsm_auto_config_implicit(self):
-        self.generate('''network:
+        self.generate(
+            '''network:
   version: 2
   renderer: NetworkManager
   modems:
     mobilephone:
       number: "*99#"
       mtu: 1600
-      pin: "1234"''')
-        self.assert_nm({'mobilephone': '''[connection]
+      pin: "1234"'''
+        )
+        self.assert_nm(
+            {
+                "mobilephone": """[connection]
 id=netplan-mobilephone
 type=gsm
 interface-name=mobilephone
@@ -118,18 +140,24 @@ method=link-local
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'mobilephone')
+        self.assert_nm_udev(NM_MANAGED % "mobilephone")
 
     def test_gsm_apn(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   modems:
     mobilephone:
-      apn: internet''')
-        self.assert_nm({'mobilephone': '''[connection]
+      apn: internet"""
+        )
+        self.assert_nm(
+            {
+                "mobilephone": """[connection]
 id=netplan-mobilephone
 type=gsm
 interface-name=mobilephone
@@ -142,20 +170,26 @@ method=link-local
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'mobilephone')
+        self.assert_nm_udev(NM_MANAGED % "mobilephone")
 
     def test_gsm_apn_username_password(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   modems:
     mobilephone:
       apn: internet
       username: some-user
-      password: some-pass''')
-        self.assert_nm({'mobilephone': '''[connection]
+      password: some-pass"""
+        )
+        self.assert_nm(
+            {
+                "mobilephone": """[connection]
 id=netplan-mobilephone
 type=gsm
 interface-name=mobilephone
@@ -170,18 +204,24 @@ method=link-local
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'mobilephone')
+        self.assert_nm_udev(NM_MANAGED % "mobilephone")
 
     def test_gsm_device_id(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   modems:
     mobilephone:
-      device-id: test''')
-        self.assert_nm({'mobilephone': '''[connection]
+      device-id: test"""
+        )
+        self.assert_nm(
+            {
+                "mobilephone": """[connection]
 id=netplan-mobilephone
 type=gsm
 interface-name=mobilephone
@@ -195,18 +235,24 @@ method=link-local
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'mobilephone')
+        self.assert_nm_udev(NM_MANAGED % "mobilephone")
 
     def test_gsm_network_id(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   modems:
     mobilephone:
-      network-id: test''')
-        self.assert_nm({'mobilephone': '''[connection]
+      network-id: test"""
+        )
+        self.assert_nm(
+            {
+                "mobilephone": """[connection]
 id=netplan-mobilephone
 type=gsm
 interface-name=mobilephone
@@ -220,18 +266,24 @@ method=link-local
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'mobilephone')
+        self.assert_nm_udev(NM_MANAGED % "mobilephone")
 
     def test_gsm_pin(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   modems:
     mobilephone:
-      pin: 1234''')
-        self.assert_nm({'mobilephone': '''[connection]
+      pin: 1234"""
+        )
+        self.assert_nm(
+            {
+                "mobilephone": """[connection]
 id=netplan-mobilephone
 type=gsm
 interface-name=mobilephone
@@ -245,18 +297,24 @@ method=link-local
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'mobilephone')
+        self.assert_nm_udev(NM_MANAGED % "mobilephone")
 
     def test_gsm_sim_id(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   modems:
     mobilephone:
-      sim-id: test''')
-        self.assert_nm({'mobilephone': '''[connection]
+      sim-id: test"""
+        )
+        self.assert_nm(
+            {
+                "mobilephone": """[connection]
 id=netplan-mobilephone
 type=gsm
 interface-name=mobilephone
@@ -270,18 +328,24 @@ method=link-local
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'mobilephone')
+        self.assert_nm_udev(NM_MANAGED % "mobilephone")
 
     def test_gsm_sim_operator_id(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   modems:
     mobilephone:
-      sim-operator-id: test''')
-        self.assert_nm({'mobilephone': '''[connection]
+      sim-operator-id: test"""
+        )
+        self.assert_nm(
+            {
+                "mobilephone": """[connection]
 id=netplan-mobilephone
 type=gsm
 interface-name=mobilephone
@@ -295,12 +359,15 @@ method=link-local
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'mobilephone')
+        self.assert_nm_udev(NM_MANAGED % "mobilephone")
 
     def test_gsm_example(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   modems:
@@ -314,8 +381,11 @@ method=ignore
       device-id: da812de91eec16620b06cd0ca5cbc7ea25245222
       pin: 2345
       sim-id: 89148000000060671234
-      sim-operator-id: 310260''')
-        self.assert_nm({'cdc-wdm1': '''[connection]
+      sim-operator-id: 310260"""
+        )
+        self.assert_nm(
+            {
+                "cdc-wdm1": """[connection]
 id=netplan-cdc-wdm1
 type=gsm
 interface-name=cdc-wdm1
@@ -337,20 +407,26 @@ method=link-local
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'cdc-wdm1')
+        self.assert_nm_udev(NM_MANAGED % "cdc-wdm1")
 
     def test_modem_nm_integration(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   modems:
     mobilephone:
       auto-config: true
       networkmanager:
-        uuid: b22d8f0f-3f34-46bd-ac28-801fa87f1eb6''')
-        self.assert_nm({'mobilephone': '''[connection]
+        uuid: b22d8f0f-3f34-46bd-ac28-801fa87f1eb6"""
+        )
+        self.assert_nm(
+            {
+                "mobilephone": """[connection]
 id=netplan-mobilephone
 type=gsm
 uuid=b22d8f0f-3f34-46bd-ac28-801fa87f1eb6
@@ -364,12 +440,15 @@ method=link-local
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'mobilephone')
+        self.assert_nm_udev(NM_MANAGED % "mobilephone")
 
     def test_modem_nm_integration_gsm_cdma(self):
-        self.generate('''network:
+        self.generate(
+            '''network:
   version: 2
   modems:
     NM-a08c5805-7cf5-43f7-afb9-12cb30f6eca3:
@@ -390,8 +469,11 @@ method=ignore
           gsm.password: "parliament2"
           gsm.network-id: "254098"
           ipv4.method: "auto"
-          ipv6.method: "auto"''')
-        self.assert_nm({'NM-a08c5805-7cf5-43f7-afb9-12cb30f6eca3': '''[connection]
+          ipv6.method: "auto"'''
+        )
+        self.assert_nm(
+            {
+                "NM-a08c5805-7cf5-43f7-afb9-12cb30f6eca3": """[connection]
 id=T-Mobile Funkadelic 2
 #Netplan: passthrough override
 type=bluetooth
@@ -421,8 +503,11 @@ method=auto
 [ipv6]
 #Netplan: passthrough override
 method=auto
-'''}, '''[device-netplan.modems.NM-a08c5805-7cf5-43f7-afb9-12cb30f6eca3]
+"""
+            },
+            """[device-netplan.modems.NM-a08c5805-7cf5-43f7-afb9-12cb30f6eca3]
 match-device=type:gsm
-managed=1\n\n''')
+managed=1\n\n""",
+        )
         self.assert_networkd({})
         self.assert_nm_udev(None)

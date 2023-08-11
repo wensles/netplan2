@@ -23,16 +23,19 @@ from .base import TestBase, NM_UNMANAGED, NM_MANAGED
 
 
 class TestNetworkd(TestBase):
-
     def test_bridge_set_mac(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   bridges:
     br0:
       macaddress: 00:01:02:03:04:05
-      dhcp4: true''')
+      dhcp4: true"""
+        )
 
-        self.assert_networkd({'br0.network': '''[Match]
+        self.assert_networkd(
+            {
+                "br0.network": """[Match]
 Name=br0
 
 [Link]
@@ -46,11 +49,14 @@ ConfigureWithoutCarrier=yes
 [DHCP]
 RouteMetric=100
 UseMTU=true
-''',
-                              'br0.netdev': '[NetDev]\nName=br0\nMACAddress=00:01:02:03:04:05\nKind=bridge\n'})
+""",
+                "br0.netdev": "[NetDev]\nName=br0\nMACAddress=00:01:02:03:04:05\nKind=bridge\n",
+            }
+        )
 
     def test_bridge_dhcp6_no_accept_ra(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -61,8 +67,11 @@ UseMTU=true
     br0:
       interfaces: [engreen]
       dhcp6: true
-      accept-ra: no''')
-        self.assert_networkd({'br0.network': '''[Match]
+      accept-ra: no"""
+        )
+        self.assert_networkd(
+            {
+                "br0.network": """[Match]
 Name=br0
 
 [Network]
@@ -74,29 +83,35 @@ ConfigureWithoutCarrier=yes
 [DHCP]
 RouteMetric=100
 UseMTU=true
-''',
-                              'br0.netdev': '''[NetDev]
+""",
+                "br0.netdev": """[NetDev]
 Name=br0
 Kind=bridge
-''',
-                              'engreen.network': '''[Match]
+""",
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
 LinkLocalAddressing=no
 IPv6AcceptRA=no
 Bridge=br0
-'''})
+""",
+            }
+        )
 
     def test_bridge_empty(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   bridges:
     br0:
-      dhcp4: true''')
+      dhcp4: true"""
+        )
 
-        self.assert_networkd({'br0.netdev': '[NetDev]\nName=br0\nKind=bridge\n',
-                              'br0.network': '''[Match]
+        self.assert_networkd(
+            {
+                "br0.netdev": "[NetDev]\nName=br0\nKind=bridge\n",
+                "br0.network": """[Match]
 Name=br0
 
 [Network]
@@ -107,21 +122,27 @@ ConfigureWithoutCarrier=yes
 [DHCP]
 RouteMetric=100
 UseMTU=true
-'''})
+""",
+            }
+        )
         self.assert_nm(None)
-        self.assert_nm_udev(NM_UNMANAGED % 'br0')
+        self.assert_nm_udev(NM_UNMANAGED % "br0")
 
     def test_bridge_type_renderer(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   bridges:
     renderer: networkd
     br0:
-      dhcp4: true''')
+      dhcp4: true"""
+        )
 
-        self.assert_networkd({'br0.netdev': '[NetDev]\nName=br0\nKind=bridge\n',
-                              'br0.network': '''[Match]
+        self.assert_networkd(
+            {
+                "br0.netdev": "[NetDev]\nName=br0\nKind=bridge\n",
+                "br0.network": """[Match]
 Name=br0
 
 [Network]
@@ -132,12 +153,15 @@ ConfigureWithoutCarrier=yes
 [DHCP]
 RouteMetric=100
 UseMTU=true
-'''})
+""",
+            }
+        )
         self.assert_nm(None)
-        self.assert_nm_udev(NM_UNMANAGED % 'br0')
+        self.assert_nm_udev(NM_UNMANAGED % "br0")
 
     def test_bridge_def_renderer(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   bridges:
@@ -145,10 +169,13 @@ UseMTU=true
     br0:
       renderer: networkd
       addresses: [1.2.3.4/12]
-      dhcp4: true''')
+      dhcp4: true"""
+        )
 
-        self.assert_networkd({'br0.netdev': '[NetDev]\nName=br0\nKind=bridge\n',
-                              'br0.network': '''[Match]
+        self.assert_networkd(
+            {
+                "br0.netdev": "[NetDev]\nName=br0\nKind=bridge\n",
+                "br0.network": """[Match]
 Name=br0
 
 [Network]
@@ -160,12 +187,15 @@ ConfigureWithoutCarrier=yes
 [DHCP]
 RouteMetric=100
 UseMTU=true
-'''})
+""",
+            }
+        )
         self.assert_nm(None)
-        self.assert_nm_udev(NM_UNMANAGED % 'br0')
+        self.assert_nm_udev(NM_UNMANAGED % "br0")
 
     def test_bridge_forward_declaration(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   bridges:
     br0:
@@ -176,10 +206,13 @@ UseMTU=true
     switchports:
       match:
         driver: yayroute
-''')
+"""
+        )
 
-        self.assert_networkd({'br0.netdev': '[NetDev]\nName=br0\nKind=bridge\n',
-                              'br0.network': '''[Match]
+        self.assert_networkd(
+            {
+                "br0.netdev": "[NetDev]\nName=br0\nKind=bridge\n",
+                "br0.network": """[Match]
 Name=br0
 
 [Network]
@@ -190,15 +223,20 @@ ConfigureWithoutCarrier=yes
 [DHCP]
 RouteMetric=100
 UseMTU=true
-''',
-                              'eno1.network': '[Match]\nName=eno1\n\n'
-                                              '[Network]\nLinkLocalAddressing=no\nBridge=br0\n',
-                              'switchports.network': '[Match]\nDriver=yayroute\n\n'
-                                                     '[Network]\nLinkLocalAddressing=no\nBridge=br0\n'})
+""",
+                "eno1.network": "[Match]\nName=eno1\n\n"
+                "[Network]\nLinkLocalAddressing=no\nBridge=br0\n",
+                "switchports.network": "[Match]\nDriver=yayroute\n\n"
+                "[Network]\nLinkLocalAddressing=no\nBridge=br0\n",
+            }
+        )
 
-    @unittest.skipIf("CODECOV_TOKEN" in os.environ, "Skip on codecov.io: GLib changed hashtable sorting")
+    @unittest.skipIf(
+        "CODECOV_TOKEN" in os.environ, "Skip on codecov.io: GLib changed hashtable sorting"
+    )
     def test_eth_bridge_nm_denylist(self):  # pragma: nocover
-        self.generate('''network:
+        self.generate(
+            """network:
   renderer: networkd
   ethernets:
     eth42:
@@ -208,12 +246,14 @@ UseMTU=true
   bridges:
     mybr:
       interfaces: [ethbr]
-      dhcp4: yes''')
+      dhcp4: yes"""
+        )
         self.assert_nm(None)
-        self.assert_nm_udev(NM_UNMANAGED % 'eth42' + NM_UNMANAGED % 'eth43' + NM_UNMANAGED % 'mybr')
+        self.assert_nm_udev(NM_UNMANAGED % "eth42" + NM_UNMANAGED % "eth43" + NM_UNMANAGED % "mybr")
 
     def test_bridge_components(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     eno1: {}
@@ -223,10 +263,13 @@ UseMTU=true
   bridges:
     br0:
       interfaces: [eno1, switchports]
-      dhcp4: true''')
+      dhcp4: true"""
+        )
 
-        self.assert_networkd({'br0.netdev': '[NetDev]\nName=br0\nKind=bridge\n',
-                              'br0.network': '''[Match]
+        self.assert_networkd(
+            {
+                "br0.netdev": "[NetDev]\nName=br0\nKind=bridge\n",
+                "br0.network": """[Match]
 Name=br0
 
 [Network]
@@ -237,14 +280,17 @@ ConfigureWithoutCarrier=yes
 [DHCP]
 RouteMetric=100
 UseMTU=true
-''',
-                              'eno1.network': '[Match]\nName=eno1\n\n'
-                                              '[Network]\nLinkLocalAddressing=no\nBridge=br0\n',
-                              'switchports.network': '[Match]\nDriver=yayroute\n\n'
-                                                     '[Network]\nLinkLocalAddressing=no\nBridge=br0\n'})
+""",
+                "eno1.network": "[Match]\nName=eno1\n\n"
+                "[Network]\nLinkLocalAddressing=no\nBridge=br0\n",
+                "switchports.network": "[Match]\nDriver=yayroute\n\n"
+                "[Network]\nLinkLocalAddressing=no\nBridge=br0\n",
+            }
+        )
 
     def test_bridge_params(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     eno1: {}
@@ -265,16 +311,19 @@ UseMTU=true
           eno1: 70
         port-priority:
           eno1: 14
-      dhcp4: true''')
+      dhcp4: true"""
+        )
 
-        self.assert_networkd({'br0.netdev': '[NetDev]\nName=br0\nKind=bridge\n\n'
-                                            '[Bridge]\nAgeingTimeSec=50\n'
-                                            'Priority=1000\n'
-                                            'ForwardDelaySec=12\n'
-                                            'HelloTimeSec=6\n'
-                                            'MaxAgeSec=24\n'
-                                            'STP=true\n',
-                              'br0.network': '''[Match]
+        self.assert_networkd(
+            {
+                "br0.netdev": "[NetDev]\nName=br0\nKind=bridge\n\n"
+                "[Bridge]\nAgeingTimeSec=50\n"
+                "Priority=1000\n"
+                "ForwardDelaySec=12\n"
+                "HelloTimeSec=6\n"
+                "MaxAgeSec=24\n"
+                "STP=true\n",
+                "br0.network": """[Match]
 Name=br0
 
 [Network]
@@ -285,25 +334,30 @@ ConfigureWithoutCarrier=yes
 [DHCP]
 RouteMetric=100
 UseMTU=true
-''',
-                              'eno1.network': '[Match]\nName=eno1\n\n'
-                                              '[Network]\nLinkLocalAddressing=no\nBridge=br0\n\n'
-                                              '[Bridge]\nCost=70\nPriority=14\n',
-                              'switchports.network': '[Match]\nDriver=yayroute\n\n'
-                                                     '[Network]\nLinkLocalAddressing=no\nBridge=br0\n'})
+""",
+                "eno1.network": "[Match]\nName=eno1\n\n"
+                "[Network]\nLinkLocalAddressing=no\nBridge=br0\n\n"
+                "[Bridge]\nCost=70\nPriority=14\n",
+                "switchports.network": "[Match]\nDriver=yayroute\n\n"
+                "[Network]\nLinkLocalAddressing=no\nBridge=br0\n",
+            }
+        )
 
 
 class TestNetworkManager(TestBase):
-
     def test_bridge_empty(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   bridges:
     br0:
-      dhcp4: true''')
+      dhcp4: true"""
+        )
 
-        self.assert_nm({'br0': '''[connection]
+        self.assert_nm(
+            {
+                "br0": """[connection]
 id=netplan-br0
 type=bridge
 interface-name=br0
@@ -313,20 +367,26 @@ method=auto
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'br0')
+        self.assert_nm_udev(NM_MANAGED % "br0")
 
     def test_bridge_type_renderer(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: networkd
   bridges:
     renderer: NetworkManager
     br0:
-      dhcp4: true''')
+      dhcp4: true"""
+        )
 
-        self.assert_nm({'br0': '''[connection]
+        self.assert_nm(
+            {
+                "br0": """[connection]
 id=netplan-br0
 type=bridge
 interface-name=br0
@@ -336,20 +396,26 @@ method=auto
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'br0')
+        self.assert_nm_udev(NM_MANAGED % "br0")
 
     def test_bridge_set_mac(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   bridges:
     renderer: NetworkManager
     br0:
       macaddress: 00:01:02:03:04:05
-      dhcp4: true''')
+      dhcp4: true"""
+        )
 
-        self.assert_nm({'br0': '''[connection]
+        self.assert_nm(
+            {
+                "br0": """[connection]
 id=netplan-br0
 type=bridge
 interface-name=br0
@@ -362,10 +428,13 @@ method=auto
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
 
     def test_bridge_def_renderer(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: networkd
   bridges:
@@ -373,9 +442,12 @@ method=ignore
     br0:
       renderer: NetworkManager
       addresses: [1.2.3.4/12]
-      dhcp4: true''')
+      dhcp4: true"""
+        )
 
-        self.assert_nm({'br0': '''[connection]
+        self.assert_nm(
+            {
+                "br0": """[connection]
 id=netplan-br0
 type=bridge
 interface-name=br0
@@ -386,12 +458,15 @@ address1=1.2.3.4/12
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'br0')
+        self.assert_nm_udev(NM_MANAGED % "br0")
 
     def test_bridge_forward_declaration(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   bridges:
@@ -403,9 +478,12 @@ method=ignore
     switchport:
       match:
         name: enp2s1
-''')
+"""
+        )
 
-        self.assert_nm({'eno1': '''[connection]
+        self.assert_nm(
+            {
+                "eno1": """[connection]
 id=netplan-eno1
 type=ethernet
 interface-name=eno1
@@ -420,8 +498,8 @@ method=link-local
 
 [ipv6]
 method=ignore
-''',
-                        'switchport': '''[connection]
+""",
+                "switchport": """[connection]
 id=netplan-switchport
 type=ethernet
 interface-name=enp2s1
@@ -436,8 +514,8 @@ method=link-local
 
 [ipv6]
 method=ignore
-''',
-                        'br0': '''[connection]
+""",
+                "br0": """[connection]
 id=netplan-br0
 type=bridge
 interface-name=br0
@@ -447,12 +525,15 @@ method=auto
 
 [ipv6]
 method=ignore
-'''})
+""",
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'br0' + NM_MANAGED % 'eno1' + NM_MANAGED % 'enp2s1')
+        self.assert_nm_udev(NM_MANAGED % "br0" + NM_MANAGED % "eno1" + NM_MANAGED % "enp2s1")
 
     def test_bridge_components(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
@@ -463,9 +544,12 @@ method=ignore
   bridges:
     br0:
       interfaces: [eno1, switchport]
-      dhcp4: true''')
+      dhcp4: true"""
+        )
 
-        self.assert_nm({'eno1': '''[connection]
+        self.assert_nm(
+            {
+                "eno1": """[connection]
 id=netplan-eno1
 type=ethernet
 interface-name=eno1
@@ -480,8 +564,8 @@ method=link-local
 
 [ipv6]
 method=ignore
-''',
-                        'switchport': '''[connection]
+""",
+                "switchport": """[connection]
 id=netplan-switchport
 type=ethernet
 interface-name=enp2s1
@@ -496,8 +580,8 @@ method=link-local
 
 [ipv6]
 method=ignore
-''',
-                        'br0': '''[connection]
+""",
+                "br0": """[connection]
 id=netplan-br0
 type=bridge
 interface-name=br0
@@ -507,12 +591,15 @@ method=auto
 
 [ipv6]
 method=ignore
-'''})
+""",
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'eno1' + NM_MANAGED % 'enp2s1' + NM_MANAGED % 'br0')
+        self.assert_nm_udev(NM_MANAGED % "eno1" + NM_MANAGED % "enp2s1" + NM_MANAGED % "br0")
 
     def test_bridge_params(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
@@ -534,9 +621,12 @@ method=ignore
         port-priority:
           eno1: 61
         stp: true
-      dhcp4: true''')
+      dhcp4: true"""
+        )
 
-        self.assert_nm({'eno1': '''[connection]
+        self.assert_nm(
+            {
+                "eno1": """[connection]
 id=netplan-eno1
 type=ethernet
 interface-name=eno1
@@ -555,8 +645,8 @@ method=link-local
 
 [ipv6]
 method=ignore
-''',
-                        'switchport': '''[connection]
+""",
+                "switchport": """[connection]
 id=netplan-switchport
 type=ethernet
 interface-name=enp2s1
@@ -571,8 +661,8 @@ method=link-local
 
 [ipv6]
 method=ignore
-''',
-                        'br0': '''[connection]
+""",
+                "br0": """[connection]
 id=netplan-br0
 type=bridge
 interface-name=br0
@@ -590,39 +680,46 @@ method=auto
 
 [ipv6]
 method=ignore
-'''})
+""",
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'eno1' + NM_MANAGED % 'enp2s1' + NM_MANAGED % 'br0')
+        self.assert_nm_udev(NM_MANAGED % "eno1" + NM_MANAGED % "enp2s1" + NM_MANAGED % "br0")
 
 
 class TestNetplanYAMLv2(TestBase):
-    '''No asserts are needed.
+    """No asserts are needed.
 
     The generate() method implicitly checks the (re-)generated YAML.
-    '''
+    """
 
     def test_bridge_stp(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   bridges:
     br0:
       parameters:
         stp: no
-      dhcp4: true''')
+      dhcp4: true"""
+        )
 
 
 class TestConfigErrors(TestBase):
-
     def test_bridge_unknown_iface(self):
-        err = self.generate('''network:
+        err = self.generate(
+            """network:
   version: 2
   bridges:
     br0:
-      interfaces: ['foo']''', expect_fail=True)
+      interfaces: ['foo']""",
+            expect_fail=True,
+        )
         self.assertIn("br0: interface 'foo' is not defined", err)
 
     def test_bridge_multiple_assignments(self):
-        err = self.generate('''network:
+        err = self.generate(
+            """network:
   version: 2
   ethernets:
     eno1: {}
@@ -630,11 +727,14 @@ class TestConfigErrors(TestBase):
     br0:
       interfaces: [eno1]
     br1:
-      interfaces: [eno1]''', expect_fail=True)
+      interfaces: [eno1]""",
+            expect_fail=True,
+        )
         self.assertIn("br1: interface 'eno1' is already assigned to bridge br0", err)
 
     def test_bridge_invalid_dev_for_path_cost(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     eno1:
@@ -646,10 +746,13 @@ class TestConfigErrors(TestBase):
       parameters:
         path-cost:
           eth0: 50
-      dhcp4: true''', expect_fail=True)
+      dhcp4: true""",
+            expect_fail=True,
+        )
 
     def test_bridge_path_cost_already_defined(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     eno1:
@@ -662,10 +765,13 @@ class TestConfigErrors(TestBase):
         path-cost:
           eno1: 50
           eno1: 40
-      dhcp4: true''', expect_fail=True)
+      dhcp4: true""",
+            expect_fail=True,
+        )
 
     def test_bridge_invalid_path_cost(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     eno1:
@@ -677,10 +783,13 @@ class TestConfigErrors(TestBase):
       parameters:
         path-cost:
           eno1: aa
-      dhcp4: true''', expect_fail=True)
+      dhcp4: true""",
+            expect_fail=True,
+        )
 
     def test_bridge_invalid_dev_for_port_prio(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     eno1:
@@ -692,10 +801,13 @@ class TestConfigErrors(TestBase):
       parameters:
         port-priority:
           eth0: 50
-      dhcp4: true''', expect_fail=True)
+      dhcp4: true""",
+            expect_fail=True,
+        )
 
     def test_bridge_port_prio_already_defined(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     eno1:
@@ -708,10 +820,13 @@ class TestConfigErrors(TestBase):
         port-priority:
           eno1: 50
           eno1: 40
-      dhcp4: true''', expect_fail=True)
+      dhcp4: true""",
+            expect_fail=True,
+        )
 
     def test_bridge_invalid_port_prio(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     eno1:
@@ -723,4 +838,6 @@ class TestConfigErrors(TestBase):
       parameters:
         port-priority:
           eno1: 257
-      dhcp4: true''', expect_fail=True)
+      dhcp4: true""",
+            expect_fail=True,
+        )

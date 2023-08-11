@@ -27,14 +27,14 @@ from netplan.cli.commands.sriov_rebind import NetplanSriovRebind
 from netplan.cli.commands.status import NetplanStatus
 
 __all__ = [
-    'NetplanApply',
-    'NetplanGenerate',
-    'NetplanIp',
-    'NetplanMigrate',
-    'NetplanTry',
-    'NetplanInfo',
-    'NetplanSet',
-    'NetplanGet',
-    'NetplanSriovRebind',
-    'NetplanStatus',
+    "NetplanApply",
+    "NetplanGenerate",
+    "NetplanIp",
+    "NetplanMigrate",
+    "NetplanTry",
+    "NetplanInfo",
+    "NetplanSet",
+    "NetplanGet",
+    "NetplanSriovRebind",
+    "NetplanStatus",
 ]

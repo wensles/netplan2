@@ -32,70 +32,69 @@ import unittest
 from base import IntegrationTestsBase
 
 BUSCTL_CONFIG = [
-        'busctl',
-        '-j',
-        'call',
-        '--system',
-        'io.netplan.Netplan',
-        '/io/netplan/Netplan',
-        'io.netplan.Netplan',
-        'Config'
-        ]
+    "busctl",
+    "-j",
+    "call",
+    "--system",
+    "io.netplan.Netplan",
+    "/io/netplan/Netplan",
+    "io.netplan.Netplan",
+    "Config",
+]
 
 BUSCTL_CONFIG_GET = [
-        'busctl',
-        '-j',
-        'call',
-        '--system',
-        'io.netplan.Netplan',
-        'PLACEHOLDER',
-        'io.netplan.Netplan.Config',
-        'Get'
-        ]
+    "busctl",
+    "-j",
+    "call",
+    "--system",
+    "io.netplan.Netplan",
+    "PLACEHOLDER",
+    "io.netplan.Netplan.Config",
+    "Get",
+]
 
 BUSCTL_CONFIG_APPLY = [
-        'busctl',
-        '-j',
-        'call',
-        '--system',
-        'io.netplan.Netplan',
-        'PLACEHOLDER',
-        'io.netplan.Netplan.Config',
-        'Apply'
-        ]
+    "busctl",
+    "-j",
+    "call",
+    "--system",
+    "io.netplan.Netplan",
+    "PLACEHOLDER",
+    "io.netplan.Netplan.Config",
+    "Apply",
+]
 
 
-class _CommonTests():
-
+class _CommonTests:
     def setUp(self):
         super().setUp()
 
         # If netplan-dbus is already running let's terminate it to
         # be sure the process is not from a binary from an old package
         # (before the installation of the one being tested)
-        cmd = ['ps', '-C', 'netplan-dbus', '-o', 'pid=']
+        cmd = ["ps", "-C", "netplan-dbus", "-o", "pid="]
         out = subprocess.run(cmd, capture_output=True, text=True)
         if out.returncode == 0:
             pid = out.stdout.strip()
             os.kill(int(pid), signal.SIGTERM)
 
     def test_dbus_config_get(self):
-        NETPLAN_YAML = '''network:
+        NETPLAN_YAML = """network:
   version: 2
   ethernets:
     %(nic)s:
       dhcp4: true
-'''
+"""
 
-        with open(self.config, 'w') as f:
-            f.write(NETPLAN_YAML % {'nic': self.dev_e_client})
+        with open(self.config, "w") as f:
+            f.write(NETPLAN_YAML % {"nic": self.dev_e_client})
 
         out = subprocess.run(BUSCTL_CONFIG, capture_output=True, text=True)
 
         self.assertEqual(out.returncode, 0, msg=f"Busctl Config() failed with error: {out.stderr}")
 
         out_dict = json.loads(out.stdout)
-        config_path = out_dict.get('data')[0]
+        config_path = out_dict.get("data")[0]
         self.assertNotEqual(config_path, "", msg="Got an empty response from DBUS")
 
         # The path has the following format: /io/netplan/Netplan/config/WM6X01
@@ -106,48 +105,51 @@ class _CommonTests():
         self.assertEqual(out.returncode, 0, msg=f"Busctl Get() failed with error: {out.stderr}")
 
         out_dict = json.loads(out.stdout)
-        netplan_data = out_dict.get('data')[0]
+        netplan_data = out_dict.get("data")[0]
 
         self.assertNotEqual(netplan_data, "", msg="Got an empty response from DBUS")
-        self.assertEqual(netplan_data, NETPLAN_YAML % {'nic': self.dev_e_client},
-                         msg="The original YAML is different from the one returned by DBUS")
+        self.assertEqual(
+            netplan_data,
+            NETPLAN_YAML % {"nic": self.dev_e_client},
+            msg="The original YAML is different from the one returned by DBUS",
+        )
 
     def test_dbus_config_set(self):
         BUSCTL_CONFIG_SET = [
-            'busctl',
-            '-j',
-            'call',
-            '--system',
-            'io.netplan.Netplan',
-            'PLACEHOLDER',
-            'io.netplan.Netplan.Config',
-            'Set',
-            'ss',
-            'ethernets.%(nic)s.dhcp4=false' % {'nic': self.dev_e_client},
-            '',
+            "busctl",
+            "-j",
+            "call",
+            "--system",
+            "io.netplan.Netplan",
+            "PLACEHOLDER",
+            "io.netplan.Netplan.Config",
+            "Set",
+            "ss",
+            "ethernets.%(nic)s.dhcp4=false" % {"nic": self.dev_e_client},
+            "",
         ]
 
-        NETPLAN_YAML_BEFORE = '''network:
+        NETPLAN_YAML_BEFORE = """network:
   version: 2
   ethernets:
     %(nic)s:
       dhcp4: true
-'''
+"""
 
-        NETPLAN_YAML_AFTER = '''network:
+        NETPLAN_YAML_AFTER = """network:
   version: 2
   ethernets:
     %(nic)s:
       dhcp4: false
-'''
-        with open(self.config, 'w') as f:
-            f.write(NETPLAN_YAML_BEFORE % {'nic': self.dev_e_client})
+"""
+        with open(self.config, "w") as f:
+            f.write(NETPLAN_YAML_BEFORE % {"nic": self.dev_e_client})
 
         out = subprocess.run(BUSCTL_CONFIG, capture_output=True, text=True)
         self.assertEqual(out.returncode, 0, msg=f"Busctl Config() failed with error: {out.stderr}")
 
         out_dict = json.loads(out.stdout)
-        config_path = out_dict.get('data')[0]
+        config_path = out_dict.get("data")[0]
 
         self.assertNotEqual(config_path, "", msg="Got an empty response from DBUS")
 
@@ -160,37 +162,42 @@ class _CommonTests():
         self.assertEqual(out.returncode, 0, msg=f"Busctl Set() failed with error: {out.stderr}")
 
         out_dict = json.loads(out.stdout)
-        self.assertEqual(out_dict.get('data')[0], True, msg="Set command failed")
+        self.assertEqual(out_dict.get("data")[0], True, msg="Set command failed")
 
         # Retrieving the configuration
         out = subprocess.run(BUSCTL_CONFIG_GET, capture_output=True, text=True)
         self.assertEqual(out.returncode, 0, msg=f"Busctl Get() failed with error: {out.stderr}")
 
         out_dict = json.loads(out.stdout)
-        netplan_data = out_dict.get('data')[0]
+        netplan_data = out_dict.get("data")[0]
 
         self.assertNotEqual(netplan_data, "", msg="Got an empty response from DBUS")
-        self.assertEqual(NETPLAN_YAML_AFTER % {'nic': self.dev_e_client},
-                         netplan_data, msg="The final YAML is different than expected")
+        self.assertEqual(
+            NETPLAN_YAML_AFTER % {"nic": self.dev_e_client},
+            netplan_data,
+            msg="The final YAML is different than expected",
+        )
 
     def test_dbus_config_apply(self):
-        NETPLAN_YAML = '''network:
+        NETPLAN_YAML = """network:
   version: 2
   bridges:
     br1234:
       dhcp4: false
-'''
+"""
 
-        self.addCleanup(subprocess.call, ['ip', 'link', 'delete', 'br1234'], stderr=subprocess.DEVNULL)
+        self.addCleanup(
+            subprocess.call, ["ip", "link", "delete", "br1234"], stderr=subprocess.DEVNULL
+        )
 
-        with open(self.config, 'w') as f:
+        with open(self.config, "w") as f:
             f.write(NETPLAN_YAML)
 
         out = subprocess.run(BUSCTL_CONFIG, capture_output=True, text=True)
         self.assertEqual(out.returncode, 0, msg=f"Busctl Config() failed with error: {out.stderr}")
 
         out_dict = json.loads(out.stdout)
-        config_path = out_dict.get('data')[0]
+        config_path = out_dict.get("data")[0]
 
         self.assertNotEqual(config_path, "", msg="Got an empty response from DBUS")
 
@@ -202,9 +209,9 @@ class _CommonTests():
         self.assertEqual(out.returncode, 0, msg=f"Busctl Apply() failed with error: {out.stderr}")
 
         out_dict = json.loads(out.stdout)
-        self.assertEqual(out_dict.get('data')[0], True, msg="Apply command failed")
+        self.assertEqual(out_dict.get("data")[0], True, msg="Apply command failed")
 
-        self.assert_iface('br1234')
+        self.assert_iface("br1234")
 
 
 class TestNetworkd(IntegrationTestsBase, _CommonTests):

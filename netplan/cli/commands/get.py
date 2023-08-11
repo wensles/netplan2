@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-'''netplan get command line'''
+"""netplan get command line"""
 
 import sys
 import io
@@ -28,14 +28,21 @@ import netplan.libnetplan as libnetplan
 
 class NetplanGet(utils.NetplanCommand):
     def __init__(self):
-        super().__init__(command_id='get',
-                         description='Get a setting by specifying a nested key like "ethernets.eth0.addresses", or "all"',
-                         leaf=True)
+        super().__init__(
+            command_id="get",
+            description='Get a setting by specifying a nested key like "ethernets.eth0.addresses", or "all"',
+            leaf=True,
+        )
 
     def run(self):
-        self.parser.add_argument('key', type=str, nargs='?', default='all', help='The nested key in dotted format')
-        self.parser.add_argument('--root-dir', default='/',
-                                 help='Read configuration files from this root directory instead of /')
+        self.parser.add_argument(
+            "key", type=str, nargs="?", default="all", help="The nested key in dotted format"
+        )
+        self.parser.add_argument(
+            "--root-dir",
+            default="/",
+            help="Read configuration files from this root directory instead of /",
+        )
 
         self.func = self.command_get
 
@@ -43,14 +50,14 @@ class NetplanGet(utils.NetplanCommand):
         self.run_command()
 
     def dump_state(self, key, np_state, output_file):
-        if key == 'all':
+        if key == "all":
             np_state.dump_yaml(output_file=output_file)
             return
 
-        if not key.startswith('network'):
-            key = '.'.join(('network', key))
+        if not key.startswith("network"):
+            key = ".".join(("network", key))
         # Replace the '.' with '\t' but not at '\.' via negative lookbehind expression
-        key = re.sub(r'(?<!\\)\.', '\t', key).replace(r'\.', '.')
+        key = re.sub(r"(?<!\\)\.", "\t", key).replace(r"\.", ".")
 
         with tempfile.NamedTemporaryFile() as tmp_in:
             np_state.dump_yaml(output_file=tmp_in)
@@ -74,5 +81,5 @@ class NetplanGet(utils.NetplanCommand):
         if output_file != sys.stdout:
             output_file.flush()
             output_file.seek(0)
-            sys.stdout.write(output_file.read().decode('utf-8'))
+            sys.stdout.write(output_file.read().decode("utf-8"))
             output_file.close()

@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-'''netplan try command line'''
+"""netplan try command line"""
 
 import logging
 import os
@@ -37,20 +37,21 @@ DEFAULT_INPUT_TIMEOUT = 120
 
 
 class NetplanTry(utils.NetplanCommand):
-
     def __init__(self):
-        super().__init__(command_id='try',
-                         description='Try to apply a new netplan config to running '
-                                     'system, with automatic rollback',
-                         leaf=True)
+        super().__init__(
+            command_id="try",
+            description="Try to apply a new netplan config to running "
+            "system, with automatic rollback",
+            leaf=True,
+        )
         self.configuration_changed = False
         self.new_interfaces = None
         self.config_file = None
         self._config_manager = None
         self.t_settings = None
         self.t = None
-        self._rootdir = os.environ.get('DBUS_TEST_NETPLAN_ROOT', '/')
-        self._netplan_try_stamp = os.path.join(self._rootdir, 'run', 'netplan', 'netplan-try.ready')
+        self._rootdir = os.environ.get("DBUS_TEST_NETPLAN_ROOT", "/")
+        self._netplan_try_stamp = os.path.join(self._rootdir, "run", "netplan", "netplan-try.ready")
 
     @property
     def config_manager(self):  # pragma: nocover (called by later commands)
@@ -65,17 +66,21 @@ class NetplanTry(utils.NetplanCommand):
         return False
 
     def touch_ready_stamp(self):
-        os.makedirs(self._rootdir + '/run/netplan', mode=0o700, exist_ok=True)
-        open(self._netplan_try_stamp, 'w').close()
+        os.makedirs(self._rootdir + "/run/netplan", mode=0o700, exist_ok=True)
+        open(self._netplan_try_stamp, "w").close()
 
     def run(self):  # pragma: nocover (requires user input)
-        self.parser.add_argument('--config-file',
-                                 help='Apply the config file in argument in addition to current configuration.')
-        self.parser.add_argument('--timeout',
-                                 type=int, default=DEFAULT_INPUT_TIMEOUT,
-                                 help="Maximum number of seconds to wait for the user's confirmation")
-        self.parser.add_argument('--state',
-                                 help='Directory containing previous YAML configuration')
+        self.parser.add_argument(
+            "--config-file",
+            help="Apply the config file in argument in addition to current configuration.",
+        )
+        self.parser.add_argument(
+            "--timeout",
+            type=int,
+            default=DEFAULT_INPUT_TIMEOUT,
+            help="Maximum number of seconds to wait for the user's confirmation",
+        )
+        self.parser.add_argument("--state", help="Directory containing previous YAML configuration")
 
         self.func = self.command_try
 
@@ -98,7 +103,9 @@ class NetplanTry(utils.NetplanCommand):
             self.backup()
             self.setup()
 
-            NetplanApply().command_apply(run_generate=True, sync=True, exit_on_error=False, state_dir=self.state)
+            NetplanApply().command_apply(
+                run_generate=True, sync=True, exit_on_error=False, state_dir=self.state
+            )
 
             # Touch stamp file, it is the signal (for netplan-dbus) that we're
             # ready to accept any Accept/Reject input (like SIGUSR1 or SIGTERM)
@@ -128,7 +135,7 @@ class NetplanTry(utils.NetplanCommand):
     def setup(self):  # pragma: nocover (requires user input)
         if self.config_file:
             dest_dir = os.path.join("/", "etc", "netplan")
-            dest_name = os.path.basename(self.config_file).rstrip('.yaml')
+            dest_name = os.path.basename(self.config_file).rstrip(".yaml")
             dest_suffix = time.time()
             dest_path = os.path.join(dest_dir, "{}.{}.yaml".format(dest_name, dest_suffix))
             self.config_manager.add({self.config_file: dest_path})
@@ -137,12 +144,14 @@ class NetplanTry(utils.NetplanCommand):
     def revert(self):  # pragma: nocover (requires user input)
         # backup the state we just tried to apply
         tempdir = tempfile.mkdtemp()
-        confdir = os.path.join(tempdir, 'etc', 'netplan')
+        confdir = os.path.join(tempdir, "etc", "netplan")
         os.makedirs(confdir)
-        shutil.copytree('/etc/netplan', confdir, dirs_exist_ok=True)
+        shutil.copytree("/etc/netplan", confdir, dirs_exist_ok=True)
         # restore previous state
         self.config_manager.revert()
-        NetplanApply().command_apply(run_generate=False, sync=True, exit_on_error=False, state_dir=tempdir)
+        NetplanApply().command_apply(
+            run_generate=False, sync=True, exit_on_error=False, state_dir=tempdir
+        )
         # clear the backup
         shutil.rmtree(tempdir)
 
@@ -150,7 +159,7 @@ class NetplanTry(utils.NetplanCommand):
         self.config_manager.cleanup()
 
     def is_revertable(self):
-        '''
+        """
         Check if the configuration is revertable, if it doesn't contain bits
         that we know are likely to render the system unstable if we apply it,
         or if we revert.
@@ -161,7 +170,7 @@ class NetplanTry(utils.NetplanCommand):
 
         Returns False if the parsed config contains options that are known
         to not cleanly revert via the backend.
-        '''
+        """
 
         extra_config = []
         if self.config_file:

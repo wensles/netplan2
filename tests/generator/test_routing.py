@@ -20,20 +20,23 @@ from .base import TestBase, ND_VLAN, ND_DHCP4, ND_EMPTY
 
 
 class TestNetworkd(TestBase):
-
     def test_route_invalid_family_to(self):
-        err = self.generate('''network:
+        err = self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
       addresses: ["192.168.14.2/24"]
       routes:
         - to: abc/24
-          via: 192.168.14.20''', expect_fail=True)
+          via: 192.168.14.20""",
+            expect_fail=True,
+        )
         self.assertIn("Error in network definition: invalid IP family '-1'", err)
 
     def test_route_v4_single(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -42,9 +45,12 @@ class TestNetworkd(TestBase):
         - to: 10.10.10.0/24
           via: 192.168.14.20
           metric: 100
-          ''')
+          """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -55,10 +61,13 @@ Address=192.168.14.2/24
 Destination=10.10.10.0/24
 Gateway=192.168.14.20
 Metric=100
-'''})
+"""
+            }
+        )
 
     def test_route_v4_single_mulit_parse(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   bridges:
     br0: {interfaces: [engreen]}
@@ -69,9 +78,12 @@ Metric=100
         - to: 10.10.10.0/24
           via: 192.168.14.20
           metric: 100
-          ''')
+          """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -83,16 +95,19 @@ Bridge=br0
 Destination=10.10.10.0/24
 Gateway=192.168.14.20
 Metric=100
-''',
-                              'br0.netdev': '[NetDev]\nName=br0\nKind=bridge\n',
-                              'br0.network': '''[Match]\nName=br0\n
+""",
+                "br0.netdev": "[NetDev]\nName=br0\nKind=bridge\n",
+                "br0.network": """[Match]\nName=br0\n
 [Network]
 LinkLocalAddressing=ipv6
 ConfigureWithoutCarrier=yes
-'''})
+""",
+            }
+        )
 
     def test_route_v4_multiple(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -106,9 +121,12 @@ ConfigureWithoutCarrier=yes
         - to: 11.11.11.0/24
           via: 192.168.1.3
           metric: 9999
-          ''')
+          """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -128,10 +146,13 @@ Metric=5000
 Destination=11.11.11.0/24
 Gateway=192.168.1.3
 Metric=9999
-'''})
+"""
+            }
+        )
 
     def test_route_v4_default(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -139,9 +160,12 @@ Metric=9999
       routes:
         - to: default
           via: 192.168.1.1
-          ''')
+          """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -151,10 +175,13 @@ Address=192.168.1.2/24
 [Route]
 Destination=0.0.0.0/0
 Gateway=192.168.1.1
-'''})
+"""
+            }
+        )
 
     def test_route_v4_onlink(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -164,9 +191,12 @@ Gateway=192.168.1.1
           via: 192.168.14.20
           on-link: true
           metric: 100
-          ''')
+          """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -178,10 +208,13 @@ Destination=10.10.10.0/24
 Gateway=192.168.14.20
 GatewayOnLink=true
 Metric=100
-'''})
+"""
+            }
+        )
 
     def test_route_v4_onlink_no(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -191,9 +224,12 @@ Metric=100
           via: 192.168.14.20
           on-link: n
           metric: 100
-          ''')
+          """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -204,10 +240,13 @@ Address=192.168.14.2/24
 Destination=10.10.10.0/24
 Gateway=192.168.14.20
 Metric=100
-'''})
+"""
+            }
+        )
 
     def test_route_v4_scope(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -216,9 +255,12 @@ Metric=100
         - to: 10.10.10.0/24
           scope: link
           metric: 100
-          ''')
+          """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -229,10 +271,13 @@ Address=192.168.14.2/24
 Destination=10.10.10.0/24
 Scope=link
 Metric=100
-'''})
+"""
+            }
+        )
 
     def test_route_v4_scope_redefine(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -243,9 +288,12 @@ Metric=100
           via: 192.168.14.20
           scope: link
           metric: 100
-          ''')
+          """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -257,10 +305,13 @@ Destination=10.10.10.0/24
 Gateway=192.168.14.20
 Scope=link
 Metric=100
-'''})
+"""
+            }
+        )
 
     def test_route_v4_type_blackhole(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -270,9 +321,12 @@ Metric=100
           via: 192.168.14.20
           type: blackhole
           metric: 100
-          ''')
+          """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -284,10 +338,13 @@ Destination=10.10.10.0/24
 Gateway=192.168.14.20
 Type=blackhole
 Metric=100
-'''})
+"""
+            }
+        )
 
     def test_route_v4_type_redefine(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -298,9 +355,12 @@ Metric=100
           via: 192.168.14.20
           type: unicast
           metric: 100
-          ''')
+          """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -311,10 +371,13 @@ Address=192.168.14.2/24
 Destination=10.10.10.0/24
 Gateway=192.168.14.20
 Metric=100
-'''})
+"""
+            }
+        )
 
     def test_route_v4_table(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -324,9 +387,12 @@ Metric=100
           via: 192.168.14.20
           table: 201
           metric: 100
-          ''')
+          """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -338,10 +404,13 @@ Destination=10.10.10.0/24
 Gateway=192.168.14.20
 Metric=100
 Table=201
-'''})
+"""
+            }
+        )
 
     def test_route_v4_from(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -351,9 +420,12 @@ Table=201
           via: 192.168.14.20
           from: 192.168.14.2
           metric: 100
-          ''')
+          """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -365,10 +437,13 @@ Destination=10.10.10.0/24
 Gateway=192.168.14.20
 PreferredSource=192.168.14.2
 Metric=100
-'''})
+"""
+            }
+        )
 
     def test_route_v4_mtu(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -377,9 +452,12 @@ Metric=100
         - to: 10.10.10.0/24
           via: 192.168.14.20
           mtu: 1500
-          ''')
+          """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -390,10 +468,13 @@ Address=192.168.14.2/24
 Destination=10.10.10.0/24
 Gateway=192.168.14.20
 MTUBytes=1500
-'''})
+"""
+            }
+        )
 
     def test_route_v4_congestion_window(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -402,9 +483,12 @@ MTUBytes=1500
         - to: 10.10.10.0/24
           via: 192.168.14.20
           congestion-window: 16
-        ''')
+        """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -415,10 +499,13 @@ Address=192.168.14.2/24
 Destination=10.10.10.0/24
 Gateway=192.168.14.20
 InitialCongestionWindow=16
-'''})
+"""
+            }
+        )
 
     def test_route_v4_advertised_receive_window(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -427,9 +514,12 @@ InitialCongestionWindow=16
         - to: 10.10.10.0/24
           via: 192.168.14.20
           advertised-receive-window: 16
-        ''')
+        """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -440,19 +530,25 @@ Address=192.168.14.2/24
 Destination=10.10.10.0/24
 Gateway=192.168.14.20
 InitialAdvertisedReceiveWindow=16
-'''})
+"""
+            }
+        )
 
     def test_route_v6_single(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     enblue:
       addresses: ["192.168.1.3/24"]
       routes:
         - to: 2001:dead:beef::2/64
-          via: 2001:beef:beef::1''')
+          via: 2001:beef:beef::1"""
+        )
 
-        self.assert_networkd({'enblue.network': '''[Match]
+        self.assert_networkd(
+            {
+                "enblue.network": """[Match]
 Name=enblue
 
 [Network]
@@ -462,10 +558,13 @@ Address=192.168.1.3/24
 [Route]
 Destination=2001:dead:beef::2/64
 Gateway=2001:beef:beef::1
-'''})
+"""
+            }
+        )
 
     def test_route_v6_type(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -473,9 +572,12 @@ Gateway=2001:beef:beef::1
       routes:
         - to: 2001:dead:beef::2/64
           via: 2001:beef:beef::1
-          type: prohibit''')
+          type: prohibit"""
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -486,10 +588,13 @@ Address=192.168.14.2/24
 Destination=2001:dead:beef::2/64
 Gateway=2001:beef:beef::1
 Type=prohibit
-'''})
+"""
+            }
+        )
 
     def test_route_v6_scope_host(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -497,9 +602,12 @@ Type=prohibit
       routes:
         - to: 2001:dead:beef::2/64
           via: 2001:beef:beef::1
-          scope: host''')
+          scope: host"""
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -510,10 +618,13 @@ Address=192.168.14.2/24
 Destination=2001:dead:beef::2/64
 Gateway=2001:beef:beef::1
 Scope=host
-'''})
+"""
+            }
+        )
 
     def test_route_v6_multiple(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     enblue:
@@ -523,9 +634,12 @@ Scope=host
           via: 2001:beef:beef::1
         - to: 2001:f00f:f00f::fe/64
           via: 2001:beef:feed::1
-          metric: 1024''')
+          metric: 1024"""
+        )
 
-        self.assert_networkd({'enblue.network': '''[Match]
+        self.assert_networkd(
+            {
+                "enblue.network": """[Match]
 Name=enblue
 
 [Network]
@@ -540,19 +654,25 @@ Gateway=2001:beef:beef::1
 Destination=2001:f00f:f00f::fe/64
 Gateway=2001:beef:feed::1
 Metric=1024
-'''})
+"""
+            }
+        )
 
     def test_route_v6_default(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     enblue:
       addresses: ["2001:dead:beef::2/64"]
       routes:
         - to: default
-          via: 2001:beef:beef::1''')
+          via: 2001:beef:beef::1"""
+        )
 
-        self.assert_networkd({'enblue.network': '''[Match]
+        self.assert_networkd(
+            {
+                "enblue.network": """[Match]
 Name=enblue
 
 [Network]
@@ -562,10 +682,13 @@ Address=2001:dead:beef::2/64
 [Route]
 Destination=::/0
 Gateway=2001:beef:beef::1
-'''})
+"""
+            }
+        )
 
     def test_ip_rule_table(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -573,9 +696,12 @@ Gateway=2001:beef:beef::1
       routing-policy:
         - to: 10.10.10.0/24
           table: 100
-          ''')
+          """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -585,10 +711,13 @@ Address=192.168.14.2/24
 [RoutingPolicyRule]
 To=10.10.10.0/24
 Table=100
-'''})
+"""
+            }
+        )
 
     def test_ip_rule_priority(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -596,9 +725,12 @@ Table=100
       routing-policy:
         - to: 10.10.10.0/24
           priority: 99
-          ''')
+          """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -608,10 +740,13 @@ Address=192.168.14.2/24
 [RoutingPolicyRule]
 To=10.10.10.0/24
 Priority=99
-'''})
+"""
+            }
+        )
 
     def test_ip_rule_fwmark(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -619,9 +754,12 @@ Priority=99
       routing-policy:
         - from: 10.10.10.0/24
           mark: 50
-          ''')
+          """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -631,10 +769,13 @@ Address=192.168.14.2/24
 [RoutingPolicyRule]
 From=10.10.10.0/24
 FirewallMark=50
-'''})
+"""
+            }
+        )
 
     def test_ip_rule_tos(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -642,9 +783,12 @@ FirewallMark=50
       routing-policy:
         - to: 10.10.10.0/24
           type-of-service: 250
-          ''')
+          """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -654,20 +798,26 @@ Address=192.168.14.2/24
 [RoutingPolicyRule]
 To=10.10.10.0/24
 TypeOfService=250
-'''})
+"""
+            }
+        )
 
     def test_use_routes(self):
         """[networkd] Validate config generation when use-routes DHCP override is used"""
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
       dhcp4: true
       dhcp4-overrides:
         use-routes: false
-          ''')
+          """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -678,11 +828,14 @@ LinkLocalAddressing=ipv6
 RouteMetric=100
 UseMTU=true
 UseRoutes=false
-'''})
+"""
+            }
+        )
 
     def test_default_metric(self):
         """[networkd] Validate config generation when metric DHCP override is used"""
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -695,9 +848,12 @@ UseRoutes=false
     enred:
       dhcp4: true
       dhcp6: true
-          ''')
+          """
+        )
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -707,8 +863,8 @@ LinkLocalAddressing=ipv6
 [DHCP]
 RouteMetric=3333
 UseMTU=true
-''',
-                              'enred.network': '''[Match]
+""",
+                "enred.network": """[Match]
 Name=enred
 
 [Network]
@@ -718,10 +874,13 @@ LinkLocalAddressing=ipv6
 [DHCP]
 RouteMetric=100
 UseMTU=true
-'''})
+""",
+            }
+        )
 
     def test_default_scope_link_lp1805038(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -733,9 +892,13 @@ UseMTU=true
       routes:
       - to: 10.97.0.0/24
         type: broadcast
-''', skip_generated_yaml_validation=True)  # scope: link is a default value in this case
+""",
+            skip_generated_yaml_validation=True,
+        )  # scope: link is a default value in this case
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -749,8 +912,8 @@ Scope=link
 [DHCP]
 RouteMetric=100
 UseMTU=true
-''',
-                              'enred.network': '''[Match]
+""",
+                "enred.network": """[Match]
 Name=enred
 
 [Network]
@@ -765,10 +928,13 @@ Type=broadcast
 [DHCP]
 RouteMetric=100
 UseMTU=true
-'''})
+""",
+            }
+        )
 
     def test_type_local_lp1892272(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -780,9 +946,13 @@ UseMTU=true
       - to: ::0/0
         type: local
         table: 100
-''', skip_generated_yaml_validation=True)  # scope: host is a default value in this case
+""",
+            skip_generated_yaml_validation=True,
+        )  # scope: host is a default value in this case
 
-        self.assert_networkd({'engreen.network': '''[Match]
+        self.assert_networkd(
+            {
+                "engreen.network": """[Match]
 Name=engreen
 
 [Network]
@@ -804,13 +974,15 @@ Table=100
 [DHCP]
 RouteMetric=100
 UseMTU=true
-'''})
+"""
+            }
+        )
 
 
 class TestNetworkManager(TestBase):
-
     def test_route_v4_single(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
@@ -820,9 +992,12 @@ class TestNetworkManager(TestBase):
         - to: 10.10.10.0/24
           via: 192.168.14.20
           metric: 100
-          ''')
+          """
+        )
 
-        self.assert_nm({'engreen': '''[connection]
+        self.assert_nm(
+            {
+                "engreen": """[connection]
 id=netplan-engreen
 type=ethernet
 interface-name=engreen
@@ -837,10 +1012,13 @@ route1=10.10.10.0/24,192.168.14.20,100
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
 
     def test_route_v4_multiple(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
@@ -855,9 +1033,12 @@ method=ignore
         - to: 11.11.11.0/24
           via: 192.168.1.3
           metric: 9999
-          ''')
+          """
+        )
 
-        self.assert_nm({'engreen': '''[connection]
+        self.assert_nm(
+            {
+                "engreen": """[connection]
 id=netplan-engreen
 type=ethernet
 interface-name=engreen
@@ -874,10 +1055,13 @@ route3=11.11.11.0/24,192.168.1.3,9999
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
 
     def test_route_v4_default(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
@@ -886,9 +1070,12 @@ method=ignore
       routes:
         - to: default
           via: 192.168.1.1
-          ''')
+          """
+        )
 
-        self.assert_nm({'engreen': '''[connection]
+        self.assert_nm(
+            {
+                "engreen": """[connection]
 id=netplan-engreen
 type=ethernet
 interface-name=engreen
@@ -903,10 +1090,13 @@ route1=0.0.0.0/0,192.168.1.1
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
 
     def test_route_v6_single(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
@@ -914,9 +1104,12 @@ method=ignore
       addresses: ["2001:f00f:f00f::2/64"]
       routes:
         - to: 2001:dead:beef::2/64
-          via: 2001:beef:beef::1''')
+          via: 2001:beef:beef::1"""
+        )
 
-        self.assert_nm({'enblue': '''[connection]
+        self.assert_nm(
+            {
+                "enblue": """[connection]
 id=netplan-enblue
 type=ethernet
 interface-name=enblue
@@ -932,10 +1125,13 @@ method=manual
 address1=2001:f00f:f00f::2/64
 ip6-privacy=0
 route1=2001:dead:beef::2/64,2001:beef:beef::1
-'''})
+"""
+            }
+        )
 
     def test_route_v6_multiple(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
@@ -946,9 +1142,12 @@ route1=2001:dead:beef::2/64,2001:beef:beef::1
           via: 2001:beef:beef::1
         - to: 2001:dead:feed::2/64
           via: 2001:beef:beef::2
-          metric: 1000''')
+          metric: 1000"""
+        )
 
-        self.assert_nm({'enblue': '''[connection]
+        self.assert_nm(
+            {
+                "enblue": """[connection]
 id=netplan-enblue
 type=ethernet
 interface-name=enblue
@@ -965,10 +1164,13 @@ address1=2001:f00f:f00f::2/64
 ip6-privacy=0
 route1=2001:dead:beef::2/64,2001:beef:beef::1
 route2=2001:dead:feed::2/64,2001:beef:beef::2,1000
-'''})
+"""
+            }
+        )
 
     def test_route_v6_default(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
@@ -976,9 +1178,12 @@ route2=2001:dead:feed::2/64,2001:beef:beef::2,1000
       addresses: ["2001:dead:beef::2/64"]
       routes:
         - to: default
-          via: 2001:beef:beef::1''')
+          via: 2001:beef:beef::1"""
+        )
 
-        self.assert_nm({'enblue': '''[connection]
+        self.assert_nm(
+            {
+                "enblue": """[connection]
 id=netplan-enblue
 type=ethernet
 interface-name=enblue
@@ -994,10 +1199,13 @@ method=manual
 address1=2001:dead:beef::2/64
 ip6-privacy=0
 route1=::/0,2001:beef:beef::1
-'''})
+"""
+            }
+        )
 
     def test_routes_mixed(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
@@ -1017,9 +1225,12 @@ route1=::/0,2001:beef:beef::1
           metric: 9999
         - to: 2001:f00f:f00f::fe/64
           via: 2001:beef:feed::1
-          ''')
+          """
+        )
 
-        self.assert_nm({'engreen': '''[connection]
+        self.assert_nm(
+            {
+                "engreen": """[connection]
 id=netplan-engreen
 type=ethernet
 interface-name=engreen
@@ -1040,10 +1251,13 @@ address1=2001:f00f::2/128
 ip6-privacy=0
 route1=2001:dead:beef::2/64,2001:beef:beef::1,997
 route2=2001:f00f:f00f::fe/64,2001:beef:feed::1
-'''})
+"""
+            }
+        )
 
     def test_route_from(self):
-        out = self.generate('''network:
+        out = self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -1053,10 +1267,13 @@ route2=2001:f00f:f00f::fe/64,2001:beef:feed::1
         - to: 10.10.10.0/24
           via: 192.168.14.20
           from: 192.168.14.2
-          ''')
-        self.assertEqual('', out)
+          """
+        )
+        self.assertEqual("", out)
 
-        self.assert_nm({'engreen': '''[connection]
+        self.assert_nm(
+            {
+                "engreen": """[connection]
 id=netplan-engreen
 type=ethernet
 interface-name=engreen
@@ -1072,11 +1289,14 @@ route1_options=src=192.168.14.2
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
 
     def test_route_onlink(self):
-        out = self.generate('''network:
+        out = self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -1086,10 +1306,13 @@ method=ignore
         - to: 10.10.10.0/24
           via: 192.168.1.20
           on-link: true
-          ''')
-        self.assertEqual('', out)
+          """
+        )
+        self.assertEqual("", out)
 
-        self.assert_nm({'engreen': '''[connection]
+        self.assert_nm(
+            {
+                "engreen": """[connection]
 id=netplan-engreen
 type=ethernet
 interface-name=engreen
@@ -1105,11 +1328,14 @@ route1_options=onlink=true
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
 
     def test_route_table(self):
-        out = self.generate('''network:
+        out = self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -1119,10 +1345,13 @@ method=ignore
         - to: 10.10.10.0/24
           via: 192.168.1.20
           table: 31337
-          ''')
-        self.assertEqual('', out)
+          """
+        )
+        self.assertEqual("", out)
 
-        self.assert_nm({'engreen': '''[connection]
+        self.assert_nm(
+            {
+                "engreen": """[connection]
 id=netplan-engreen
 type=ethernet
 interface-name=engreen
@@ -1138,11 +1367,14 @@ route1_options=table=31337
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
 
     def test_route_mtu(self):
-        out = self.generate('''network:
+        out = self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -1152,10 +1384,13 @@ method=ignore
         - to: 10.10.10.0/24
           via: 192.168.1.20
           mtu: 1500
-          ''')
-        self.assertEqual('', out)
+          """
+        )
+        self.assertEqual("", out)
 
-        self.assert_nm({'engreen': '''[connection]
+        self.assert_nm(
+            {
+                "engreen": """[connection]
 id=netplan-engreen
 type=ethernet
 interface-name=engreen
@@ -1171,11 +1406,14 @@ route1_options=mtu=1500
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
 
     def test_route_congestion_window(self):
-        out = self.generate('''network:
+        out = self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -1185,10 +1423,13 @@ method=ignore
         - to: 10.10.10.0/24
           via: 192.168.1.20
           congestion-window: 16
-        ''')
-        self.assertEqual('', out)
+        """
+        )
+        self.assertEqual("", out)
 
-        self.assert_nm({'engreen': '''[connection]
+        self.assert_nm(
+            {
+                "engreen": """[connection]
 id=netplan-engreen
 type=ethernet
 interface-name=engreen
@@ -1204,11 +1445,14 @@ route1_options=initcwnd=16
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
 
     def test_route_advertised_receive_window(self):
-        out = self.generate('''network:
+        out = self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -1218,10 +1462,13 @@ method=ignore
         - to: 10.10.10.0/24
           via: 192.168.1.20
           advertised-receive-window: 16
-        ''')
-        self.assertEqual('', out)
+        """
+        )
+        self.assertEqual("", out)
 
-        self.assert_nm({'engreen': '''[connection]
+        self.assert_nm(
+            {
+                "engreen": """[connection]
 id=netplan-engreen
 type=ethernet
 interface-name=engreen
@@ -1237,11 +1484,14 @@ route1_options=initrwnd=16
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
 
     def test_route_options(self):
-        out = self.generate('''network:
+        out = self.generate(
+            """network:
   version: 2
   ethernets:
     engreen:
@@ -1253,10 +1503,13 @@ method=ignore
           table: 31337
           from: 192.168.14.2
           on-link: true
-          ''')
-        self.assertEqual('', out)
+          """
+        )
+        self.assertEqual("", out)
 
-        self.assert_nm({'engreen': '''[connection]
+        self.assert_nm(
+            {
+                "engreen": """[connection]
 id=netplan-engreen
 type=ethernet
 interface-name=engreen
@@ -1272,11 +1525,14 @@ route1_options=onlink=true,table=31337,src=192.168.14.2
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
 
     def test_route_reject_type(self):
-        err = self.generate('''network:
+        err = self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
@@ -1286,14 +1542,17 @@ method=ignore
         - to: 10.10.10.0/24
           via: 192.168.1.20
           type: blackhole
-          ''', expect_fail=True)
-        self.assertIn('NetworkManager only supports unicast routes', err)
+          """,
+            expect_fail=True,
+        )
+        self.assertIn("NetworkManager only supports unicast routes", err)
 
         self.assert_nm({})
         self.assert_networkd({})
 
     def test_route_reject_type_v6(self):
-        err = self.generate('''network:
+        err = self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
@@ -1303,15 +1562,18 @@ method=ignore
         - to: 2001:dead:beef::2/64
           via: 2001:beef:beef::1
           type: blackhole
-          ''', expect_fail=True)
-        self.assertIn('NetworkManager only supports unicast routes', err)
+          """,
+            expect_fail=True,
+        )
+        self.assertIn("NetworkManager only supports unicast routes", err)
 
         self.assert_nm({})
         self.assert_networkd({})
 
     def test_use_routes_v4(self):
         """[NetworkManager] Validate config when use-routes DHCP4 override is used"""
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
@@ -1319,8 +1581,11 @@ method=ignore
       dhcp4: true
       dhcp4-overrides:
         use-routes: false
-          ''')
-        self.assert_nm({'engreen': '''[connection]
+          """
+        )
+        self.assert_nm(
+            {
+                "engreen": """[connection]
 id=netplan-engreen
 type=ethernet
 interface-name=engreen
@@ -1335,11 +1600,14 @@ never-default=true
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
 
     def test_use_routes_v6(self):
         """[NetworkManager] Validate config when use-routes DHCP6 override is used"""
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
@@ -1348,8 +1616,11 @@ method=ignore
       dhcp6: true
       dhcp6-overrides:
         use-routes: false
-          ''')
-        self.assert_nm({'engreen': '''[connection]
+          """
+        )
+        self.assert_nm(
+            {
+                "engreen": """[connection]
 id=netplan-engreen
 type=ethernet
 interface-name=engreen
@@ -1365,11 +1636,14 @@ method=auto
 ip6-privacy=0
 ignore-auto-routes=true
 never-default=true
-'''})
+"""
+            }
+        )
 
     def test_default_metric_v4(self):
         """[NetworkManager] Validate config when setting a default metric for DHCPv4"""
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
@@ -1378,8 +1652,11 @@ never-default=true
       dhcp6: true
       dhcp4-overrides:
         route-metric: 4000
-          ''')
-        self.assert_nm({'engreen': '''[connection]
+          """
+        )
+        self.assert_nm(
+            {
+                "engreen": """[connection]
 id=netplan-engreen
 type=ethernet
 interface-name=engreen
@@ -1394,11 +1671,14 @@ route-metric=4000
 [ipv6]
 method=auto
 ip6-privacy=0
-'''})
+"""
+            }
+        )
 
     def test_default_metric_v6(self):
         """[NetworkManager] Validate config when setting a default metric for DHCPv6"""
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
@@ -1407,8 +1687,11 @@ ip6-privacy=0
       dhcp6: true
       dhcp6-overrides:
         route-metric: 5050
-          ''')
-        self.assert_nm({'engreen': '''[connection]
+          """
+        )
+        self.assert_nm(
+            {
+                "engreen": """[connection]
 id=netplan-engreen
 type=ethernet
 interface-name=engreen
@@ -1423,14 +1706,18 @@ method=auto
 method=auto
 ip6-privacy=0
 route-metric=5050
-'''})
+"""
+            }
+        )
 
     def test_add_routes_to_different_tables_from_multiple_files(self):
         """Test case for bug LP#2003061"""
 
-        self.generate('''network:
-  version: 2''',
-                      confs={'01-netcfg': '''network:
+        self.generate(
+            """network:
+  version: 2""",
+            confs={
+                "01-netcfg": """network:
   version: 2
   ethernets:
     eth0:
@@ -1438,8 +1725,8 @@ route-metric=5050
   vlans:
     vlan100:
       id: 100
-      link: eth0''',
-                             '10-table1': '''network:
+      link: eth0""",
+                "10-table1": """network:
   version: 2
   vlans:
     vlan100:
@@ -1449,8 +1736,8 @@ route-metric=5050
       routes:
         - to: 0.0.0.0/0
           via: 10.0.0.100
-          table: 1001''',
-                             '10-table2': '''network:
+          table: 1001""",
+                "10-table2": """network:
   version: 2
   vlans:
     vlan100:
@@ -1460,11 +1747,16 @@ route-metric=5050
       routes:
         - to: 0.0.0.0/0
           via: 10.0.0.200
-          table: 1002'''})
+          table: 1002""",
+            },
+        )
 
-        self.assert_networkd({'eth0.network': (ND_DHCP4 % 'eth0').replace('\n[DHCP]', 'VLAN=vlan100\n\n[DHCP]'),
-                              'vlan100.netdev': ND_VLAN % ('vlan100', 100),
-                              'vlan100.network': ND_EMPTY % ('vlan100', 'ipv6') + '''
+        self.assert_networkd(
+            {
+                "eth0.network": (ND_DHCP4 % "eth0").replace("\n[DHCP]", "VLAN=vlan100\n\n[DHCP]"),
+                "vlan100.netdev": ND_VLAN % ("vlan100", 100),
+                "vlan100.network": ND_EMPTY % ("vlan100", "ipv6")
+                + """
 [Route]
 Destination=0.0.0.0/0
 Gateway=10.0.0.100
@@ -1482,15 +1774,19 @@ Table=1001
 [RoutingPolicyRule]
 From=10.0.0.2
 Table=1002
-'''})
+""",
+            }
+        )
 
     def test_add_duplicate_routes_from_multiple_files(self):
-        """ Duplicate route should produce a single entry in the
+        """Duplicate route should produce a single entry in the
         backend configuration"""
 
-        self.generate('''network:
-  version: 2''',
-                      confs={'01-netcfg': '''network:
+        self.generate(
+            """network:
+  version: 2""",
+            confs={
+                "01-netcfg": """network:
   version: 2
   ethernets:
     eth0:
@@ -1498,8 +1794,8 @@ Table=1002
   vlans:
     vlan100:
       id: 100
-      link: eth0''',
-                             '10-table1': '''network:
+      link: eth0""",
+                "10-table1": """network:
   version: 2
   vlans:
     vlan100:
@@ -1509,8 +1805,8 @@ Table=1002
       routes:
         - to: 0.0.0.0/0
           via: 10.0.0.100
-          table: 1001''',
-                             '10-table2': '''network:
+          table: 1001""",
+                "10-table2": """network:
   version: 2
   vlans:
     vlan100:
@@ -1520,11 +1816,16 @@ Table=1002
       routes:
         - to: 0.0.0.0/0
           via: 10.0.0.100
-          table: 1001'''})
+          table: 1001""",
+            },
+        )
 
-        self.assert_networkd({'eth0.network': (ND_DHCP4 % 'eth0').replace('\n[DHCP]', 'VLAN=vlan100\n\n[DHCP]'),
-                              'vlan100.netdev': ND_VLAN % ('vlan100', 100),
-                              'vlan100.network': ND_EMPTY % ('vlan100', 'ipv6') + '''
+        self.assert_networkd(
+            {
+                "eth0.network": (ND_DHCP4 % "eth0").replace("\n[DHCP]", "VLAN=vlan100\n\n[DHCP]"),
+                "vlan100.netdev": ND_VLAN % ("vlan100", 100),
+                "vlan100.network": ND_EMPTY % ("vlan100", "ipv6")
+                + """
 [Route]
 Destination=0.0.0.0/0
 Gateway=10.0.0.100
@@ -1537,4 +1838,6 @@ Table=1001
 [RoutingPolicyRule]
 From=10.0.0.2
 Table=1002
-'''})
+""",
+            }
+        )

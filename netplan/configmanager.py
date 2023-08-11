@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-'''netplan configuration manager'''
+"""netplan configuration manager"""
 
 import logging
 import os
@@ -31,7 +31,7 @@ from netplan import libnetplan
 class ConfigManager(object):
     def __init__(self, prefix="/", extra_files={}):
         self.prefix = prefix
-        self.tempdir = tempfile.mkdtemp(prefix='netplan_')
+        self.tempdir = tempfile.mkdtemp(prefix="netplan_")
         self.temp_etc = os.path.join(self.tempdir, "etc")
         self.temp_run = os.path.join(self.tempdir, "run")
         self.extra_files = extra_files
@@ -98,14 +98,19 @@ class ConfigManager(object):
 
     def backup(self, backup_config_dir=True):
         if backup_config_dir:
-            self._copy_tree(os.path.join(self.prefix, "etc/netplan"),
-                            os.path.join(self.temp_etc, "netplan"))
-        self._copy_tree(os.path.join(self.prefix, "run/NetworkManager/system-connections"),
-                        os.path.join(self.temp_run, "NetworkManager", "system-connections"),
-                        missing_ok=True)
-        self._copy_tree(os.path.join(self.prefix, "run/systemd/network"),
-                        os.path.join(self.temp_run, "systemd", "network"),
-                        missing_ok=True)
+            self._copy_tree(
+                os.path.join(self.prefix, "etc/netplan"), os.path.join(self.temp_etc, "netplan")
+            )
+        self._copy_tree(
+            os.path.join(self.prefix, "run/NetworkManager/system-connections"),
+            os.path.join(self.temp_run, "NetworkManager", "system-connections"),
+            missing_ok=True,
+        )
+        self._copy_tree(
+            os.path.join(self.prefix, "run/systemd/network"),
+            os.path.join(self.temp_run, "systemd", "network"),
+            missing_ok=True,
+        )
 
     def revert(self):
         try:
@@ -116,12 +121,14 @@ class ConfigManager(object):
             temp_networkd_path = "{}/systemd/network".format(self.temp_run)
             if os.path.exists(temp_nm_path):
                 shutil.rmtree(os.path.join(self.prefix, "run/NetworkManager/system-connections"))
-                self._copy_tree(temp_nm_path,
-                                os.path.join(self.prefix, "run/NetworkManager/system-connections"))
+                self._copy_tree(
+                    temp_nm_path, os.path.join(self.prefix, "run/NetworkManager/system-connections")
+                )
             if os.path.exists(temp_networkd_path):
                 shutil.rmtree(os.path.join(self.prefix, "run/systemd/network"))
-                self._copy_tree(temp_networkd_path,
-                                os.path.join(self.prefix, "run/systemd/network"))
+                self._copy_tree(
+                    temp_networkd_path, os.path.join(self.prefix, "run/systemd/network")
+                )
         except Exception as e:  # pragma: nocover (only relevant to filesystem failures)
             # If we reach here, we're in big trouble. We may have wiped out
             # file NM or networkd are using, and we most likely removed the
@@ -130,7 +137,9 @@ class ConfigManager(object):
             # aggressively and drop everything; leaving any remaining backups
             # around for the user to handle themselves.
             logging.error("Something really bad happened while reverting config: {}".format(e))
-            logging.error("You should verify the netplan YAML in /etc/netplan and probably run 'netplan apply' again.")
+            logging.error(
+                "You should verify the netplan YAML in /etc/netplan and probably run 'netplan apply' again."
+            )
             sys.exit(-1)
 
     def cleanup(self):
@@ -160,4 +169,5 @@ class ConfigurationError(Exception):
     """
     Configuration could not be parsed or has otherwise failed to apply
     """
+
     pass

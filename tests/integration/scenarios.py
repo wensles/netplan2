@@ -32,14 +32,16 @@ import unittest
 from base import IntegrationTestsBase, test_backends
 
 
-class _CommonTests():
-
+class _CommonTests:
     def test_mix_bridge_on_bond(self):
         self.setup_eth(None)
-        self.addCleanup(subprocess.call, ['ip', 'link', 'delete', 'bond0'], stderr=subprocess.DEVNULL)
-        self.addCleanup(subprocess.call, ['ip', 'link', 'delete', 'br0'], stderr=subprocess.DEVNULL)
-        with open(self.config, 'w') as f:
-            f.write('''network:
+        self.addCleanup(
+            subprocess.call, ["ip", "link", "delete", "bond0"], stderr=subprocess.DEVNULL
+        )
+        self.addCleanup(subprocess.call, ["ip", "link", "delete", "br0"], stderr=subprocess.DEVNULL)
+        with open(self.config, "w") as f:
+            f.write(
+                """network:
   renderer: %(r)s
   bridges:
     br0:
@@ -55,22 +57,29 @@ class _CommonTests():
       match: {name: %(ec)s}
     ethb2:
       match: {name: %(e2c)s}
-''' % {'r': self.backend, 'ec': self.dev_e_client, 'e2c': self.dev_e2_client})
-        self.generate_and_settle([self.dev_e_client, self.dev_e2_client, 'br0', 'bond0'])
-        self.assert_iface_up(self.dev_e2_client, ['master bond0'], ['inet '])  # wokeignore:rule=master
-        self.assert_iface_up('bond0', ['master br0'])  # wokeignore:rule=master
-        self.assert_iface('br0', ['inet 192.168.0.2/24'])
-        with open('/sys/class/net/bond0/bonding/slaves') as f:  # wokeignore:rule=slave
+"""
+                % {"r": self.backend, "ec": self.dev_e_client, "e2c": self.dev_e2_client}
+            )
+        self.generate_and_settle([self.dev_e_client, self.dev_e2_client, "br0", "bond0"])
+        self.assert_iface_up(
+            self.dev_e2_client, ["master bond0"], ["inet "]
+        )  # wokeignore:rule=master
+        self.assert_iface_up("bond0", ["master br0"])  # wokeignore:rule=master
+        self.assert_iface("br0", ["inet 192.168.0.2/24"])
+        with open("/sys/class/net/bond0/bonding/slaves") as f:  # wokeignore:rule=slave
             result = f.read().strip()
             self.assertIn(self.dev_e2_client, result)
 
     def test_mix_vlan_on_bridge_on_bond(self):
         self.setup_eth(None, False)
-        self.addCleanup(subprocess.call, ['ip', 'link', 'delete', 'bond0'], stderr=subprocess.DEVNULL)
-        self.addCleanup(subprocess.call, ['ip', 'link', 'delete', 'br0'], stderr=subprocess.DEVNULL)
-        self.addCleanup(subprocess.call, ['ip', 'link', 'delete', 'br1'], stderr=subprocess.DEVNULL)
-        with open(self.config, 'w') as f:
-            f.write('''network:
+        self.addCleanup(
+            subprocess.call, ["ip", "link", "delete", "bond0"], stderr=subprocess.DEVNULL
+        )
+        self.addCleanup(subprocess.call, ["ip", "link", "delete", "br0"], stderr=subprocess.DEVNULL)
+        self.addCleanup(subprocess.call, ["ip", "link", "delete", "br1"], stderr=subprocess.DEVNULL)
+        with open(self.config, "w") as f:
+            f.write(
+                """network:
   renderer: %(r)s
   version: 2
   vlans:
@@ -103,48 +112,61 @@ class _CommonTests():
       match: {name: %(ec)s}
     ethb2:
       match: {name: %(e2c)s}
-''' % {'r': self.backend, 'ec': self.dev_e_client, 'e2c': self.dev_e2_client})
-        self.generate_and_settle([self.dev_e_client, self.dev_e2_client, 'br0', 'br1', 'bond0', 'vlan1', 'vlan2'])
-        self.assert_iface_up('vlan1', ['vlan1@br0'])
-        self.assert_iface_up('vlan2', ['vlan2@' + self.dev_e_client, 'master br0'])  # wokeignore:rule=master
-        self.assert_iface_up(self.dev_e2_client, ['master br1'], ['inet '])  # wokeignore:rule=master
-        self.assert_iface_up('bond0', ['master br0'])  # wokeignore:rule=master
+"""
+                % {"r": self.backend, "ec": self.dev_e_client, "e2c": self.dev_e2_client}
+            )
+        self.generate_and_settle(
+            [self.dev_e_client, self.dev_e2_client, "br0", "br1", "bond0", "vlan1", "vlan2"]
+        )
+        self.assert_iface_up("vlan1", ["vlan1@br0"])
+        self.assert_iface_up(
+            "vlan2", ["vlan2@" + self.dev_e_client, "master br0"]
+        )  # wokeignore:rule=master
+        self.assert_iface_up(
+            self.dev_e2_client, ["master br1"], ["inet "]
+        )  # wokeignore:rule=master
+        self.assert_iface_up("bond0", ["master br0"])  # wokeignore:rule=master
 
     # https://bugs.launchpad.net/netplan/+bug/1943120
     def test_remove_virtual_interfaces(self):
         tempdir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, tempdir)
-        self.addCleanup(subprocess.call, ['ip', 'link', 'delete', 'br54'], stderr=subprocess.DEVNULL)
-        confdir = os.path.join(tempdir, 'etc', 'netplan')
+        self.addCleanup(
+            subprocess.call, ["ip", "link", "delete", "br54"], stderr=subprocess.DEVNULL
+        )
+        confdir = os.path.join(tempdir, "etc", "netplan")
         os.makedirs(confdir)
-        with open(self.config, 'w') as f:
-            f.write('''network:
+        with open(self.config, "w") as f:
+            f.write(
+                """network:
   renderer: %(r)s
   version: 2
   bridges:
     br54:
-      addresses: [1.2.3.4/24]''' % {'r': self.backend})
-        self.generate_and_settle(['br54'])
-        self.assert_iface('br54', ['inet 1.2.3.4/24'])
+      addresses: [1.2.3.4/24]"""
+                % {"r": self.backend}
+            )
+        self.generate_and_settle(["br54"])
+        self.assert_iface("br54", ["inet 1.2.3.4/24"])
         # backup the current YAML state (incl. br54)
-        shutil.copytree('/etc/netplan', confdir, dirs_exist_ok=True)
+        shutil.copytree("/etc/netplan", confdir, dirs_exist_ok=True)
         # drop br54 interface
-        subprocess.check_call(['netplan', 'set', 'network.bridges.br54.addresses=null'])
+        subprocess.check_call(["netplan", "set", "network.bridges.br54.addresses=null"])
         self.generate_and_settle([], state_dir=tempdir)
-        res = subprocess.run(['ip', 'link', 'show', 'dev', 'br54'], capture_output=True, text=True)
-        self.assertIn('not exist', res.stderr)
+        res = subprocess.run(["ip", "link", "show", "dev", "br54"], capture_output=True, text=True)
+        self.assertIn("not exist", res.stderr)
 
 
-@unittest.skipIf("networkd" not in test_backends,
-                 "skipping as networkd backend tests are disabled")
+@unittest.skipIf("networkd" not in test_backends, "skipping as networkd backend tests are disabled")
 class TestNetworkd(IntegrationTestsBase, _CommonTests):
-    backend = 'networkd'
+    backend = "networkd"
 
 
-@unittest.skipIf("NetworkManager" not in test_backends,
-                 "skipping as NetworkManager backend tests are disabled")
+@unittest.skipIf(
+    "NetworkManager" not in test_backends, "skipping as NetworkManager backend tests are disabled"
+)
 class TestNetworkManager(IntegrationTestsBase, _CommonTests):
-    backend = 'NetworkManager'
+    backend = "NetworkManager"
 
 
 unittest.main(testRunner=unittest.TextTestRunner(stream=sys.stdout, verbosity=2))

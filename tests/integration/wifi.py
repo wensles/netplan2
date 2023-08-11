@@ -28,13 +28,13 @@ import unittest
 from base import IntegrationTestsWifi, test_backends
 
 
-class _CommonTests():
-
+class _CommonTests:
     @unittest.skip("Unsupported matching by driver / wifi matching makes this untestable for now")
     def test_mapping_for_driver(self):
-        self.setup_ap('hw_mode=b\nchannel=1\nssid=fake net', None)
-        with open(self.config, 'w') as f:
-            f.write('''network:
+        self.setup_ap("hw_mode=b\nchannel=1\nssid=fake net", None)
+        with open(self.config, "w") as f:
+            f.write(
+                """network:
   renderer: %(r)s
   wifis:
     wifi_ifs:
@@ -43,52 +43,62 @@ class _CommonTests():
       dhcp4: yes
       access-points:
         "fake net": {}
-        decoy: {}''' % {'r': self.backend})
+        decoy: {}"""
+                % {"r": self.backend}
+            )
         self.generate_and_settle([self.state_dhcp4(self.dev_w_client)])
-        p = subprocess.Popen(['netplan', 'generate', '--mapping', 'mac80211_hwsim'],
-                             stdout=subprocess.PIPE)
+        p = subprocess.Popen(
+            ["netplan", "generate", "--mapping", "mac80211_hwsim"], stdout=subprocess.PIPE
+        )
         out = p.communicate()[0]
         self.assertEquals(p.returncode, 1)
-        self.assertIn(b'mac80211_hwsim', out)
+        self.assertIn(b"mac80211_hwsim", out)
 
     def test_wifi_ipv4_open(self):
-        self.setup_ap('hw_mode=b\nchannel=1\nssid=fake net', None)
+        self.setup_ap("hw_mode=b\nchannel=1\nssid=fake net", None)
 
-        with open(self.config, 'w') as f:
-            f.write('''network:
+        with open(self.config, "w") as f:
+            f.write(
+                """network:
   renderer: %(r)s
   wifis:
     %(wc)s:
       dhcp4: yes
       access-points:
         "fake net": {}
-        decoy: {}''' % {'r': self.backend, 'wc': self.dev_w_client})
+        decoy: {}"""
+                % {"r": self.backend, "wc": self.dev_w_client}
+            )
         self.generate_and_settle([self.state_dhcp4(self.dev_w_client)])
-        self.assert_iface_up(self.dev_w_client, ['inet 192.168.5.[0-9]+/24'])
-        self.assertIn(b'default via 192.168.5.1',  # from DHCP
-                      subprocess.check_output(['ip', 'route', 'show', 'dev', self.dev_w_client]))
-        if self.backend == 'NetworkManager':
-            out = subprocess.check_output(['nmcli', 'dev', 'show', self.dev_w_client],
-                                          text=True)
-            self.assertRegex(out, 'GENERAL.CONNECTION.*netplan-%s-fake net' % self.dev_w_client)
-            self.assertRegex(out, 'IP4.DNS.*192.168.5.1')
+        self.assert_iface_up(self.dev_w_client, ["inet 192.168.5.[0-9]+/24"])
+        self.assertIn(
+            b"default via 192.168.5.1",  # from DHCP
+            subprocess.check_output(["ip", "route", "show", "dev", self.dev_w_client]),
+        )
+        if self.backend == "NetworkManager":
+            out = subprocess.check_output(["nmcli", "dev", "show", self.dev_w_client], text=True)
+            self.assertRegex(out, "GENERAL.CONNECTION.*netplan-%s-fake net" % self.dev_w_client)
+            self.assertRegex(out, "IP4.DNS.*192.168.5.1")
         else:
-            out = subprocess.check_output(['networkctl', 'status', self.dev_w_client],
-                                          text=True)
-            self.assertRegex(out, 'DNS.*192.168.5.1')
+            out = subprocess.check_output(["networkctl", "status", self.dev_w_client], text=True)
+            self.assertRegex(out, "DNS.*192.168.5.1")
 
     def test_wifi_ipv4_wpa2(self):
-        self.setup_ap('''hw_mode=g
+        self.setup_ap(
+            """hw_mode=g
 channel=1
 ssid=fake net
 wpa=1
 wpa_key_mgmt=WPA-PSK
 wpa_pairwise=TKIP
 wpa_passphrase=12345678
-''', None)
+""",
+            None,
+        )
 
-        with open(self.config, 'w') as f:
-            f.write('''network:
+        with open(self.config, "w") as f:
+            f.write(
+                """network:
   renderer: %(r)s
   wifis:
     %(wc)s:
@@ -96,35 +106,41 @@ wpa_passphrase=12345678
       access-points:
         "fake net":
           password: 12345678
-        decoy: {}''' % {'r': self.backend, 'wc': self.dev_w_client})
+        decoy: {}"""
+                % {"r": self.backend, "wc": self.dev_w_client}
+            )
         self.generate_and_settle([self.state_dhcp4(self.dev_w_client)])
-        self.assert_iface_up(self.dev_w_client, ['inet 192.168.5.[0-9]+/24'])
-        self.assertIn(b'default via 192.168.5.1',  # from DHCP
-                      subprocess.check_output(['ip', 'route', 'show', 'dev', self.dev_w_client]))
-        if self.backend == 'NetworkManager':
-            out = subprocess.check_output(['nmcli', 'dev', 'show', self.dev_w_client],
-                                          text=True)
-            self.assertRegex(out, 'GENERAL.CONNECTION.*netplan-%s-fake net' % self.dev_w_client)
-            self.assertRegex(out, 'IP4.DNS.*192.168.5.1')
+        self.assert_iface_up(self.dev_w_client, ["inet 192.168.5.[0-9]+/24"])
+        self.assertIn(
+            b"default via 192.168.5.1",  # from DHCP
+            subprocess.check_output(["ip", "route", "show", "dev", self.dev_w_client]),
+        )
+        if self.backend == "NetworkManager":
+            out = subprocess.check_output(["nmcli", "dev", "show", self.dev_w_client], text=True)
+            self.assertRegex(out, "GENERAL.CONNECTION.*netplan-%s-fake net" % self.dev_w_client)
+            self.assertRegex(out, "IP4.DNS.*192.168.5.1")
         else:
-            out = subprocess.check_output(['networkctl', 'status', self.dev_w_client],
-                                          text=True)
-            self.assertRegex(out, 'DNS.*192.168.5.1')
+            out = subprocess.check_output(["networkctl", "status", self.dev_w_client], text=True)
+            self.assertRegex(out, "DNS.*192.168.5.1")
 
     def test_wifi_regdom(self):
-        self.setup_ap('''hw_mode=g
+        self.setup_ap(
+            """hw_mode=g
 channel=1
 ssid=fake net
 wpa=1
 wpa_key_mgmt=WPA-PSK
 wpa_pairwise=TKIP
 wpa_passphrase=12345678
-''', None)
+""",
+            None,
+        )
 
-        out = subprocess.check_output(['iw', 'reg', 'get'], text=True)
-        self.assertNotIn('country GB', out)
-        with open(self.config, 'w') as f:
-            f.write('''network:
+        out = subprocess.check_output(["iw", "reg", "get"], text=True)
+        self.assertNotIn("country GB", out)
+        with open(self.config, "w") as f:
+            f.write(
+                """network:
   renderer: %(r)s
   wifis:
     %(wc)s:
@@ -132,54 +148,58 @@ wpa_passphrase=12345678
       regulatory-domain: GB
       access-points:
         "fake net":
-          password: 12345678''' % {'r': self.backend, 'wc': self.dev_w_client})
+          password: 12345678"""
+                % {"r": self.backend, "wc": self.dev_w_client}
+            )
         self.generate_and_settle([self.dev_w_client])
-        self.assert_iface_up(self.dev_w_client, ['inet 192.168.1.42/24'])
-        out = subprocess.check_output(['iw', 'reg', 'get'], text=True)
-        self.assertIn('global\ncountry GB', out)
+        self.assert_iface_up(self.dev_w_client, ["inet 192.168.1.42/24"])
+        out = subprocess.check_output(["iw", "reg", "get"], text=True)
+        self.assertIn("global\ncountry GB", out)
 
 
-@unittest.skipIf("networkd" not in test_backends,
-                 "skipping as networkd backend tests are disabled")
+@unittest.skipIf("networkd" not in test_backends, "skipping as networkd backend tests are disabled")
 class TestNetworkd(IntegrationTestsWifi, _CommonTests):
-    backend = 'networkd'
+    backend = "networkd"
 
 
-@unittest.skipIf("NetworkManager" not in test_backends,
-                 "skipping as NetworkManager backend tests are disabled")
+@unittest.skipIf(
+    "NetworkManager" not in test_backends, "skipping as NetworkManager backend tests are disabled"
+)
 class TestNetworkManager(IntegrationTestsWifi, _CommonTests):
-    backend = 'NetworkManager'
+    backend = "NetworkManager"
 
     def test_wifi_ap_open(self):
         # we use dev_w_client and dev_w_ap in switched roles here, to keep the
         # existing device denylisting in NM; i. e. dev_w_client is the
         # NM-managed AP, and dev_w_ap the manually managed client
-        with open(self.config, 'w') as f:
-            f.write('''network:
+        with open(self.config, "w") as f:
+            f.write(
+                """network:
   wifis:
     renderer: NetworkManager
     %(wc)s:
       dhcp4: yes
       access-points:
         "fake net":
-          mode: ap''' % {'wc': self.dev_w_client})
-        self.generate_and_settle([self.state(self.dev_w_client, 'inet 10.')])
-        out = subprocess.check_output(['iw', 'dev', self.dev_w_client, 'info'],
-                                      text=True)
-        self.assertIn('type AP', out)
-        self.assertIn('ssid fake net', out)
+          mode: ap"""
+                % {"wc": self.dev_w_client}
+            )
+        self.generate_and_settle([self.state(self.dev_w_client, "inet 10.")])
+        out = subprocess.check_output(["iw", "dev", self.dev_w_client, "info"], text=True)
+        self.assertIn("type AP", out)
+        self.assertIn("ssid fake net", out)
 
         # connect the other end
-        subprocess.check_call(['ip', 'link', 'set', self.dev_w_ap, 'up'])
-        subprocess.check_call(['iw', 'dev', self.dev_w_ap, 'connect', 'fake net'])
-        out = subprocess.check_output(['dhclient', '-1', '-v', self.dev_w_ap],
-                                      stderr=subprocess.STDOUT, text=True)
-        self.assertIn('DHCPACK', out)
-        out = subprocess.check_output(['iw', 'dev', self.dev_w_ap, 'info'],
-                                      text=True)
-        self.assertIn('type managed', out)
-        self.assertIn('ssid fake net', out)
-        self.assert_iface_up(self.dev_w_ap, ['inet 10.'])
+        subprocess.check_call(["ip", "link", "set", self.dev_w_ap, "up"])
+        subprocess.check_call(["iw", "dev", self.dev_w_ap, "connect", "fake net"])
+        out = subprocess.check_output(
+            ["dhclient", "-1", "-v", self.dev_w_ap], stderr=subprocess.STDOUT, text=True
+        )
+        self.assertIn("DHCPACK", out)
+        out = subprocess.check_output(["iw", "dev", self.dev_w_ap, "info"], text=True)
+        self.assertIn("type managed", out)
+        self.assertIn("ssid fake net", out)
+        self.assert_iface_up(self.dev_w_ap, ["inet 10."])
 
 
 unittest.main(testRunner=unittest.TextTestRunner(stream=sys.stdout, verbosity=2))

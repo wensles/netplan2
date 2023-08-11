@@ -28,19 +28,32 @@ import unittest
 from base import IntegrationTestsBase, test_backends
 
 
-class _CommonTests():
-
+class _CommonTests:
     def test_vlan(self):
         # we create two VLANs on e2c, and run dnsmasq on ID 2002 to test DHCP via VLAN
         self.setup_eth(None, start_dnsmasq=False)
         self.start_dnsmasq(None, self.dev_e2_ap)
-        subprocess.check_call(['ip', 'link', 'add', 'link', self.dev_e2_ap,
-                               'name', 'nptestsrv', 'type', 'vlan', 'id', '2002'])
-        subprocess.check_call(['ip', 'a', 'add', '192.168.5.1/24', 'dev', 'nptestsrv'])
-        subprocess.check_call(['ip', 'link', 'set', 'nptestsrv', 'up'])
-        self.start_dnsmasq(None, 'nptestsrv')
-        with open(self.config, 'w') as f:
-            f.write('''network:
+        subprocess.check_call(
+            [
+                "ip",
+                "link",
+                "add",
+                "link",
+                self.dev_e2_ap,
+                "name",
+                "nptestsrv",
+                "type",
+                "vlan",
+                "id",
+                "2002",
+            ]
+        )
+        subprocess.check_call(["ip", "a", "add", "192.168.5.1/24", "dev", "nptestsrv"])
+        subprocess.check_call(["ip", "link", "set", "nptestsrv", "up"])
+        self.start_dnsmasq(None, "nptestsrv")
+        with open(self.config, "w") as f:
+            f.write(
+                """network:
   version: 2
   renderer: %(r)s
   ethernets:
@@ -56,22 +69,30 @@ class _CommonTests():
       id: 2002
       link: myether
       dhcp4: true
-      ''' % {'r': self.backend, 'e2c': self.dev_e2_client})
-        self.generate_and_settle([self.state_dhcp4(self.dev_e2_client),
-                                  'nptestone',
-                                  self.state_dhcp4('nptesttwo')])
-        self.assert_iface_up('nptestone', ['nptestone@' + self.dev_e2_client, 'inet 10.9.8.7/24'])
-        self.assert_iface_up('nptesttwo', ['nptesttwo@' + self.dev_e2_client, 'inet 192.168.5'])
-        self.assertNotIn(b'default',
-                         subprocess.check_output(['ip', 'route', 'show', 'dev', 'nptestone']))
-        self.assertIn(b'default via 192.168.5.1',  # from DHCP
-                      subprocess.check_output(['ip', 'route', 'show', 'dev', 'nptesttwo']))
+      """
+                % {"r": self.backend, "e2c": self.dev_e2_client}
+            )
+        self.generate_and_settle(
+            [self.state_dhcp4(self.dev_e2_client), "nptestone", self.state_dhcp4("nptesttwo")]
+        )
+        self.assert_iface_up("nptestone", ["nptestone@" + self.dev_e2_client, "inet 10.9.8.7/24"])
+        self.assert_iface_up("nptesttwo", ["nptesttwo@" + self.dev_e2_client, "inet 192.168.5"])
+        self.assertNotIn(
+            b"default", subprocess.check_output(["ip", "route", "show", "dev", "nptestone"])
+        )
+        self.assertIn(
+            b"default via 192.168.5.1",  # from DHCP
+            subprocess.check_output(["ip", "route", "show", "dev", "nptesttwo"]),
+        )
 
     def test_vlan_mac_address(self):
         self.setup_eth(None)
-        self.addCleanup(subprocess.call, ['ip', 'link', 'delete', 'myvlan'], stderr=subprocess.DEVNULL)
-        with open(self.config, 'w') as f:
-            f.write('''network:
+        self.addCleanup(
+            subprocess.call, ["ip", "link", "delete", "myvlan"], stderr=subprocess.DEVNULL
+        )
+        with open(self.config, "w") as f:
+            f.write(
+                """network:
   renderer: %(r)s
   ethernets:
     ethbn:
@@ -81,23 +102,25 @@ class _CommonTests():
       id: 101
       link: ethbn
       macaddress: aa:bb:cc:dd:ee:22
-        ''' % {'r': self.backend, 'ec': self.dev_e_client})
-        self.generate_and_settle([self.dev_e_client, 'myvlan'])
-        self.assert_iface_up('myvlan', ['myvlan@' + self.dev_e_client])
-        with open('/sys/class/net/myvlan/address') as f:
-            self.assertEqual(f.read().strip(), 'aa:bb:cc:dd:ee:22')
+        """
+                % {"r": self.backend, "ec": self.dev_e_client}
+            )
+        self.generate_and_settle([self.dev_e_client, "myvlan"])
+        self.assert_iface_up("myvlan", ["myvlan@" + self.dev_e_client])
+        with open("/sys/class/net/myvlan/address") as f:
+            self.assertEqual(f.read().strip(), "aa:bb:cc:dd:ee:22")
 
 
-@unittest.skipIf("networkd" not in test_backends,
-                 "skipping as networkd backend tests are disabled")
+@unittest.skipIf("networkd" not in test_backends, "skipping as networkd backend tests are disabled")
 class TestNetworkd(IntegrationTestsBase, _CommonTests):
-    backend = 'networkd'
+    backend = "networkd"
 
 
-@unittest.skipIf("NetworkManager" not in test_backends,
-                 "skipping as NetworkManager backend tests are disabled")
+@unittest.skipIf(
+    "NetworkManager" not in test_backends, "skipping as NetworkManager backend tests are disabled"
+)
 class TestNetworkManager(IntegrationTestsBase, _CommonTests):
-    backend = 'NetworkManager'
+    backend = "NetworkManager"
 
 
 unittest.main(testRunner=unittest.TextTestRunner(stream=sys.stdout, verbosity=2))

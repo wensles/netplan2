@@ -23,9 +23,9 @@ from .base import TestBase, ND_DHCP4, ND_WIFI_DHCP4, SD_WPA, NM_MANAGED, NM_UNMA
 
 
 class TestNetworkd(TestBase):
-
     def test_auth_wifi_detailed(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   wifis:
     wl0:
@@ -80,45 +80,59 @@ class TestNetworkd(TestBase):
           mode: adhoc
           auth: {}
       dhcp4: yes
-      ''')
+      """
+        )
 
-        self.assert_networkd({'wl0.network': ND_WIFI_DHCP4 % 'wl0'})
+        self.assert_networkd({"wl0.network": ND_WIFI_DHCP4 % "wl0"})
         self.assert_nm(None)
-        self.assert_nm_udev(NM_UNMANAGED % 'wl0')
+        self.assert_nm_udev(NM_UNMANAGED % "wl0")
 
         # generates wpa config and enables wpasupplicant unit
-        with open(os.path.join(self.workdir.name, 'run/netplan/wpa-wl0.conf')) as f:
+        with open(os.path.join(self.workdir.name, "run/netplan/wpa-wl0.conf")) as f:
             new_config = f.read()
-            self.assertIn('ctrl_interface=/run/wpa_supplicant', new_config)
-            self.assertIn('''
+            self.assertIn("ctrl_interface=/run/wpa_supplicant", new_config)
+            self.assertIn(
+                """
 network={
   ssid="peer2peer"
   mode=1
   key_mgmt=NONE
 }
-''', new_config)
-            self.assertIn('''
+""",
+                new_config,
+            )
+            self.assertIn(
+                """
 network={
   ssid="Luke's Home"
   key_mgmt=WPA-PSK
   psk="4lsos3kr1t"
 }
-''', new_config)
-            self.assertIn('''
+""",
+                new_config,
+            )
+            self.assertIn(
+                """
 network={
   ssid="BobsHome"
   key_mgmt=WPA-PSK
   psk=e03ce667c87bc81ca968d9120ca37f89eb09aec3c55b80386e5d772efd6b926e
 }
-''', new_config)
-            self.assertIn('''
+""",
+                new_config,
+            )
+            self.assertIn(
+                """
 network={
   ssid="BillsHome"
   key_mgmt=WPA-PSK
   psk=db3b0acf5653aeaddd5fe034fb9f07175b2864f847b005aaa2f09182d9411b04
 }
-''', new_config)
-            self.assertIn('''
+""",
+                new_config,
+            )
+            self.assertIn(
+                """
 network={
   ssid="workplace2"
   key_mgmt=WPA-EAP
@@ -127,8 +141,11 @@ network={
   password="v3ryS3kr1t"
   ca_cert="/etc/ssl/work2-cacrt.pem"
 }
-''', new_config)
-            self.assertIn('''
+""",
+                new_config,
+            )
+            self.assertIn(
+                """
 network={
   ssid="workplace"
   key_mgmt=WPA-EAP
@@ -137,8 +154,11 @@ network={
   anonymous_identity="@internal.example.com"
   password="v3ryS3kr1t"
 }
-''', new_config)
-            self.assertIn('''
+""",
+                new_config,
+            )
+            self.assertIn(
+                """
 network={
   ssid="workplacehashed"
   key_mgmt=WPA-EAP
@@ -147,8 +167,11 @@ network={
   anonymous_identity="@internal.example.com"
   password=hash:9db1636cedc5948537e7bee0cc1e9590
 }
-''', new_config)
-            self.assertIn('''
+""",
+                new_config,
+            )
+            self.assertIn(
+                """
 network={
   ssid="customernet"
   key_mgmt=WPA-EAP
@@ -160,28 +183,46 @@ network={
   private_key="/etc/ssl/cust-key.pem"
   private_key_passwd="d3cryptPr1v4t3K3y"
 }
-''', new_config)
-            self.assertIn('''
+""",
+                new_config,
+            )
+            self.assertIn(
+                """
 network={
   ssid="opennet"
   key_mgmt=NONE
 }
-''', new_config)
-            self.assertIn('''
+""",
+                new_config,
+            )
+            self.assertIn(
+                """
 network={
   ssid="Joe's Home"
   key_mgmt=WPA-PSK
   psk="s0s3kr1t"
 }
-''', new_config)
+""",
+                new_config,
+            )
             self.assertEqual(stat.S_IMODE(os.fstat(f.fileno()).st_mode), 0o600)
-        self.assertTrue(os.path.isfile(os.path.join(
-            self.workdir.name, 'run/systemd/system/netplan-wpa-wl0.service')))
-        self.assertTrue(os.path.islink(os.path.join(
-            self.workdir.name, 'run/systemd/system/systemd-networkd.service.wants/netplan-wpa-wl0.service')))
+        self.assertTrue(
+            os.path.isfile(
+                os.path.join(self.workdir.name, "run/systemd/system/netplan-wpa-wl0.service")
+            )
+        )
+        self.assertTrue(
+            os.path.islink(
+                os.path.join(
+                    self.workdir.name,
+                    "run/systemd/system/systemd-networkd.service.wants/netplan-wpa-wl0.service",
+                )
+            )
+        )
 
     def test_auth_wired(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     eth0:
@@ -196,15 +237,18 @@ network={
         client-key-password: "d3cryptPr1v4t3K3y"
         phase2-auth: MSCHAPV2
       dhcp4: yes
-      ''')
+      """
+        )
 
-        self.assert_networkd({'eth0.network': ND_DHCP4 % 'eth0'})
+        self.assert_networkd({"eth0.network": ND_DHCP4 % "eth0"})
         self.assert_nm(None)
-        self.assert_nm_udev(NM_UNMANAGED % 'eth0')
+        self.assert_nm_udev(NM_UNMANAGED % "eth0")
 
         # generates wpa config and enables wpasupplicant unit
-        with open(os.path.join(self.workdir.name, 'run/netplan/wpa-eth0.conf')) as f:
-            self.assertEqual(f.read(), '''ctrl_interface=/run/wpa_supplicant
+        with open(os.path.join(self.workdir.name, "run/netplan/wpa-eth0.conf")) as f:
+            self.assertEqual(
+                f.read(),
+                """ctrl_interface=/run/wpa_supplicant
 
 network={
   key_mgmt=IEEE8021X
@@ -217,22 +261,34 @@ network={
   private_key_passwd="d3cryptPr1v4t3K3y"
   phase2="auth=MSCHAPV2"
 }
-''')
+""",
+            )
             self.assertEqual(stat.S_IMODE(os.fstat(f.fileno()).st_mode), 0o600)
-        self.assertTrue(os.path.isfile(os.path.join(
-            self.workdir.name, 'run/systemd/system/netplan-wpa-eth0.service')))
+        self.assertTrue(
+            os.path.isfile(
+                os.path.join(self.workdir.name, "run/systemd/system/netplan-wpa-eth0.service")
+            )
+        )
 
-        with open(os.path.join(self.workdir.name, 'run/systemd/system/netplan-wpa-eth0.service')) as f:
-            self.assertEqual(f.read(), SD_WPA % {'iface': 'eth0', 'drivers': 'wired'})
+        with open(
+            os.path.join(self.workdir.name, "run/systemd/system/netplan-wpa-eth0.service")
+        ) as f:
+            self.assertEqual(f.read(), SD_WPA % {"iface": "eth0", "drivers": "wired"})
             self.assertEqual(stat.S_IMODE(os.fstat(f.fileno()).st_mode), 0o644)
-        self.assertTrue(os.path.islink(os.path.join(
-            self.workdir.name, 'run/systemd/system/systemd-networkd.service.wants/netplan-wpa-eth0.service')))
+        self.assertTrue(
+            os.path.islink(
+                os.path.join(
+                    self.workdir.name,
+                    "run/systemd/system/systemd-networkd.service.wants/netplan-wpa-eth0.service",
+                )
+            )
+        )
 
 
 class TestNetworkManager(TestBase):
-
     def test_auth_wifi_detailed(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   wifis:
@@ -283,10 +339,13 @@ class TestNetworkManager(TestBase):
           mode: adhoc
           auth: {}
       dhcp4: yes
-      ''')
+      """
+        )
 
         self.assert_networkd({})
-        self.assert_nm({'wl0-Joe%27s%20Home': '''[connection]
+        self.assert_nm(
+            {
+                "wl0-Joe%27s%20Home": """[connection]
 id=netplan-wl0-Joe's Home
 type=wifi
 interface-name=wl0
@@ -304,8 +363,8 @@ mode=infrastructure
 [wifi-security]
 key-mgmt=wpa-psk
 psk=s0s3kr1t
-''',
-                        'wl0-Luke%27s%20Home': '''[connection]
+""",
+                "wl0-Luke%27s%20Home": """[connection]
 id=netplan-wl0-Luke's Home
 type=wifi
 interface-name=wl0
@@ -323,8 +382,8 @@ mode=infrastructure
 [wifi-security]
 key-mgmt=wpa-psk
 psk=4lsos3kr1t
-''',
-                        'wl0-workplace': '''[connection]
+""",
+                "wl0-workplace": """[connection]
 id=netplan-wl0-workplace
 type=wifi
 interface-name=wl0
@@ -347,8 +406,8 @@ eap=ttls
 identity=joe@internal.example.com
 anonymous-identity=@internal.example.com
 password=v3ryS3kr1t
-''',
-                        'wl0-workplace2': '''[connection]
+""",
+                "wl0-workplace2": """[connection]
 id=netplan-wl0-workplace2
 type=wifi
 interface-name=wl0
@@ -371,8 +430,8 @@ eap=peap
 identity=joe@internal.example.com
 password=v3ryS3kr1t
 ca-cert=/etc/ssl/work2-cacrt.pem
-''',
-                        'wl0-workplacehashed': '''[connection]
+""",
+                "wl0-workplacehashed": """[connection]
 id=netplan-wl0-workplacehashed
 type=wifi
 interface-name=wl0
@@ -395,8 +454,8 @@ eap=ttls
 identity=joe@internal.example.com
 anonymous-identity=@internal.example.com
 password=hash:9db1636cedc5948537e7bee0cc1e9590
-''',
-                        'wl0-customernet': '''[connection]
+""",
+                "wl0-customernet": """[connection]
 id=netplan-wl0-customernet
 type=wifi
 interface-name=wl0
@@ -423,8 +482,8 @@ client-cert=/etc/ssl/cust-crt.pem
 private-key=/etc/ssl/cust-key.pem
 private-key-password=d3cryptPr1v4t3K3y
 phase2-auth=MSCHAPV2
-''',
-                        'wl0-opennet': '''[connection]
+""",
+                "wl0-opennet": """[connection]
 id=netplan-wl0-opennet
 type=wifi
 interface-name=wl0
@@ -438,8 +497,8 @@ method=ignore
 [wifi]
 ssid=opennet
 mode=infrastructure
-''',
-                        'wl0-peer2peer': '''[connection]
+""",
+                "wl0-peer2peer": """[connection]
 id=netplan-wl0-peer2peer
 type=wifi
 interface-name=wl0
@@ -453,11 +512,14 @@ method=ignore
 [wifi]
 ssid=peer2peer
 mode=adhoc
-'''})
-        self.assert_nm_udev(NM_MANAGED % 'wl0')
+""",
+            }
+        )
+        self.assert_nm_udev(NM_MANAGED % "wl0")
 
     def test_auth_wired(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
@@ -472,9 +534,12 @@ mode=adhoc
         client-key: /etc/ssl/cust-key.pem
         client-key-password: "d3cryptPr1v4t3K3y"
       dhcp4: yes
-      ''')
+      """
+        )
 
-        self.assert_nm({'eth0': '''[connection]
+        self.assert_nm(
+            {
+                "eth0": """[connection]
 id=netplan-eth0
 type=ethernet
 interface-name=eth0
@@ -496,71 +561,90 @@ ca-cert=/etc/ssl/cust-cacrt.pem
 client-cert=/etc/ssl/cust-crt.pem
 private-key=/etc/ssl/cust-key.pem
 private-key-password=d3cryptPr1v4t3K3y
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'eth0')
+        self.assert_nm_udev(NM_MANAGED % "eth0")
 
 
 class TestConfigErrors(TestBase):
-
     def test_auth_invalid_key_mgmt(self):
-        err = self.generate('''network:
+        err = self.generate(
+            """network:
   version: 2
   ethernets:
     eth0:
       auth:
-        key-management: bogus''', expect_fail=True)
+        key-management: bogus""",
+            expect_fail=True,
+        )
         self.assertIn("unknown key management type 'bogus'", err)
 
     def test_auth_invalid_eap_method(self):
-        err = self.generate('''network:
+        err = self.generate(
+            """network:
   version: 2
   ethernets:
     eth0:
       auth:
-        method: bogus''', expect_fail=True)
+        method: bogus""",
+            expect_fail=True,
+        )
         self.assertIn("unknown EAP method 'bogus'", err)
 
     def test_auth_networkd_wifi_psk_too_big(self):
-        err = self.generate('''network:
+        err = self.generate(
+            """network:
   version: 2
   wifis:
     wl0:
       access-points:
         "Joe's Home":
           password: "LoremipsumdolorsitametconsecteturadipiscingelitCrastemporvelitnunc"
-      dhcp4: yes''', expect_fail=True)
+      dhcp4: yes""",
+            expect_fail=True,
+        )
         self.assertIn("ASCII passphrase must be between 8 and 63 characters (inclusive)", err)
 
     def test_auth_networkd_wifi_psk_too_small(self):
-        err = self.generate('''network:
+        err = self.generate(
+            """network:
   version: 2
   wifis:
     wl0:
       access-points:
         "Joe's Home":
           password: "p4ss"
-      dhcp4: yes''', expect_fail=True)
+      dhcp4: yes""",
+            expect_fail=True,
+        )
         self.assertIn("ASCII passphrase must be between 8 and 63 characters (inclusive)", err)
 
     def test_auth_networkd_wifi_psk_64_non_hexdigit(self):
-        err = self.generate('''network:
+        err = self.generate(
+            """network:
   version: 2
   wifis:
     wl0:
       access-points:
         "Joe's Home":
           password: "LoremipsumdolorsitametconsecteturadipiscingelitCrastemporvelitnu"
-      dhcp4: yes''', expect_fail=True)
+      dhcp4: yes""",
+            expect_fail=True,
+        )
         self.assertIn("PSK length of 64 is only supported for hex-digit representation", err)
 
     def test_auth_networkd_wire_psk_64_non_hexdigit(self):
-        err = self.generate('''network:
+        err = self.generate(
+            """network:
   version: 2
   ethernets:
     eth0:
       auth:
         key-management: psk
         password: "LoremipsumdolorsitametconsecteturadipiscingelitCrastemporvelitnu"
-      dhcp4: yes''', expect_fail=True)
+      dhcp4: yes""",
+            expect_fail=True,
+        )
         self.assertIn("PSK length of 64 is only supported for hex-digit representation", err)

@@ -30,7 +30,7 @@ import netplan.libnetplan as libnetplan
 from unittest.mock import patch
 
 
-DEVICES = ['eth0', 'eth1', 'ens3', 'ens4', 'br0']
+DEVICES = ["eth0", "eth1", "ens3", "ens4", "br0"]
 
 
 # Consider switching to something more standard, like MockProc
@@ -43,7 +43,8 @@ class MockCmd:
         self.path = os.path.join(self._tmp.name, name)
         self.call_log = os.path.join(self._tmp.name, "call.log")
         with open(self.path, "w") as fp:
-            fp.write("""#!/bin/bash
+            fp.write(
+                """#!/bin/bash
 printf "%%s" "$(basename "$0")" >> %(log)s
 printf '\\0' >> %(log)s
 
@@ -53,7 +54,9 @@ for arg in "$@"; do
 done
 
 printf '\\0' >> %(log)s
-""" % {'log': self.call_log})
+"""
+                % {"log": self.call_log}
+            )
         os.chmod(self.path, 0o755)
 
     def calls(self):
@@ -79,7 +82,8 @@ printf '\\0' >> %(log)s
 
     def set_timeout(self, timeout_dsec=10):
         with open(self.path, "a") as fp:
-            fp.write("""
+            fp.write(
+                """
 if [[ "$*" == *try* ]]
 then
     ACTIVE=1
@@ -91,7 +95,10 @@ then
         sleep 0.1
     done
 fi
-""".format(timeout_dsec))
+""".format(
+                    timeout_dsec
+                )
+            )
 
     def set_returncode(self, returncode):
         with open(self.path, "a") as fp:
@@ -111,17 +118,15 @@ def call_cli(args):
 
 
 class TestUtils(unittest.TestCase):
-
     def setUp(self):
         self.workdir = tempfile.TemporaryDirectory()
-        self.confdir = os.path.join(self.workdir.name, 'etc/netplan')
-        self.default_conf = os.path.join(self.confdir, 'a.yaml')
+        self.confdir = os.path.join(self.workdir.name, "etc/netplan")
+        self.default_conf = os.path.join(self.confdir, "a.yaml")
         os.makedirs(self.confdir)
-        os.makedirs(os.path.join(self.workdir.name,
-                    'run/NetworkManager/system-connections'))
+        os.makedirs(os.path.join(self.workdir.name, "run/NetworkManager/system-connections"))
 
     def load_conf(self, conf_txt):
-        with open(self.default_conf, 'w') as f:
+        with open(self.default_conf, "w") as f:
             f.write(conf_txt)
         parser = libnetplan.Parser()
         parser.load_yaml_hierarchy(rootdir=self.workdir.name)
@@ -130,242 +135,271 @@ class TestUtils(unittest.TestCase):
         return state
 
     def _create_nm_keyfile(self, filename, ifname):
-        with open(os.path.join(self.workdir.name,
-                  'run/NetworkManager/system-connections/', filename), 'w') as f:
-            f.write('[connection]\n')
-            f.write('key=value\n')
-            f.write('interface-name=%s\n' % ifname)
-            f.write('key2=value2\n')
+        with open(
+            os.path.join(self.workdir.name, "run/NetworkManager/system-connections/", filename), "w"
+        ) as f:
+            f.write("[connection]\n")
+            f.write("key=value\n")
+            f.write("interface-name=%s\n" % ifname)
+            f.write("key2=value2\n")
 
     def test_nm_interfaces(self):
-        self._create_nm_keyfile('netplan-test.nmconnection', 'eth0')
-        self._create_nm_keyfile('netplan-test2.nmconnection', 'eth1')
-        ifaces = utils.nm_interfaces(glob.glob(os.path.join(self.workdir.name,
-                                     'run/NetworkManager/system-connections/*.nmconnection')),
-                                     DEVICES)
-        self.assertTrue('eth0' in ifaces)
-        self.assertTrue('eth1' in ifaces)
+        self._create_nm_keyfile("netplan-test.nmconnection", "eth0")
+        self._create_nm_keyfile("netplan-test2.nmconnection", "eth1")
+        ifaces = utils.nm_interfaces(
+            glob.glob(
+                os.path.join(
+                    self.workdir.name, "run/NetworkManager/system-connections/*.nmconnection"
+                )
+            ),
+            DEVICES,
+        )
+        self.assertTrue("eth0" in ifaces)
+        self.assertTrue("eth1" in ifaces)
         self.assertTrue(len(ifaces) == 2)
 
     def test_nm_interfaces_globbing(self):
-        self._create_nm_keyfile('netplan-test.nmconnection', 'eth?')
-        ifaces = utils.nm_interfaces(glob.glob(os.path.join(self.workdir.name,
-                                     'run/NetworkManager/system-connections/*.nmconnection')),
-                                     DEVICES)
-        self.assertTrue('eth0' in ifaces)
-        self.assertTrue('eth1' in ifaces)
+        self._create_nm_keyfile("netplan-test.nmconnection", "eth?")
+        ifaces = utils.nm_interfaces(
+            glob.glob(
+                os.path.join(
+                    self.workdir.name, "run/NetworkManager/system-connections/*.nmconnection"
+                )
+            ),
+            DEVICES,
+        )
+        self.assertTrue("eth0" in ifaces)
+        self.assertTrue("eth1" in ifaces)
         self.assertTrue(len(ifaces) == 2)
 
     def test_nm_interfaces_globbing2(self):
-        self._create_nm_keyfile('netplan-test.nmconnection', 'e*')
-        ifaces = utils.nm_interfaces(glob.glob(os.path.join(self.workdir.name,
-                                     'run/NetworkManager/system-connections/*.nmconnection')),
-                                     DEVICES)
-        self.assertTrue('eth0' in ifaces)
-        self.assertTrue('eth1' in ifaces)
-        self.assertTrue('ens3' in ifaces)
-        self.assertTrue('ens4' in ifaces)
+        self._create_nm_keyfile("netplan-test.nmconnection", "e*")
+        ifaces = utils.nm_interfaces(
+            glob.glob(
+                os.path.join(
+                    self.workdir.name, "run/NetworkManager/system-connections/*.nmconnection"
+                )
+            ),
+            DEVICES,
+        )
+        self.assertTrue("eth0" in ifaces)
+        self.assertTrue("eth1" in ifaces)
+        self.assertTrue("ens3" in ifaces)
+        self.assertTrue("ens4" in ifaces)
         self.assertTrue(len(ifaces) == 4)
 
     # For the matching tests, we mock out the functions querying extra data
-    @patch('netplan.cli.utils.get_interface_driver_name')
-    @patch('netplan.cli.utils.get_interface_macaddress')
+    @patch("netplan.cli.utils.get_interface_driver_name")
+    @patch("netplan.cli.utils.get_interface_macaddress")
     def test_find_matching_iface_too_many(self, gim, gidn):
-        gidn.side_effect = lambda x: 'foo' if x == 'ens4' else 'bar'
-        gim.side_effect = lambda x: '00:01:02:03:04:05' if x == 'eth1' else '00:00:00:00:00:00'
+        gidn.side_effect = lambda x: "foo" if x == "ens4" else "bar"
+        gim.side_effect = lambda x: "00:01:02:03:04:05" if x == "eth1" else "00:00:00:00:00:00"
 
-        state = self.load_conf('''network:
+        state = self.load_conf(
+            '''network:
   ethernets:
     netplan-id:
       match:
-        name: "e*"''')
+        name: "e*"'''
+        )
         # too many matches
-        iface = utils.find_matching_iface(DEVICES, state['netplan-id'])
+        iface = utils.find_matching_iface(DEVICES, state["netplan-id"])
         self.assertEqual(iface, None)
 
-    @patch('netplan.cli.utils.get_interface_driver_name')
-    @patch('netplan.cli.utils.get_interface_macaddress')
+    @patch("netplan.cli.utils.get_interface_driver_name")
+    @patch("netplan.cli.utils.get_interface_macaddress")
     def test_find_matching_iface(self, gim, gidn):
         # we mock-out get_interface_macaddress to return useful values for the test
-        gidn.side_effect = lambda x: 'foo' if x == 'ens4' else 'bar'
-        gim.side_effect = lambda x: '00:01:02:03:04:05' if x == 'eth1' else '00:00:00:00:00:00'
+        gidn.side_effect = lambda x: "foo" if x == "ens4" else "bar"
+        gim.side_effect = lambda x: "00:01:02:03:04:05" if x == "eth1" else "00:00:00:00:00:00"
 
-        state = self.load_conf('''network:
+        state = self.load_conf(
+            '''network:
   ethernets:
     netplan-id:
       match:
         name: "e*"
-        macaddress: "00:01:02:03:04:05"''')
+        macaddress: "00:01:02:03:04:05"'''
+        )
 
-        iface = utils.find_matching_iface(DEVICES, state['netplan-id'])
-        self.assertEqual(iface, 'eth1')
+        iface = utils.find_matching_iface(DEVICES, state["netplan-id"])
+        self.assertEqual(iface, "eth1")
 
-    @patch('netplan.cli.utils.get_interface_driver_name')
-    @patch('netplan.cli.utils.get_interface_macaddress')
+    @patch("netplan.cli.utils.get_interface_driver_name")
+    @patch("netplan.cli.utils.get_interface_macaddress")
     def test_find_matching_iface_name_and_driver(self, gim, gidn):
-        gidn.side_effect = lambda x: 'foo' if x == 'ens4' else 'bar'
-        gim.side_effect = lambda x: '00:01:02:03:04:05' if x == 'eth1' else '00:00:00:00:00:00'
+        gidn.side_effect = lambda x: "foo" if x == "ens4" else "bar"
+        gim.side_effect = lambda x: "00:01:02:03:04:05" if x == "eth1" else "00:00:00:00:00:00"
 
-        state = self.load_conf('''network:
+        state = self.load_conf(
+            '''network:
   ethernets:
     netplan-id:
       match:
         name: "ens?"
-        driver: "f*"''')
+        driver: "f*"'''
+        )
 
-        iface = utils.find_matching_iface(DEVICES, state['netplan-id'])
-        self.assertEqual(iface, 'ens4')
+        iface = utils.find_matching_iface(DEVICES, state["netplan-id"])
+        self.assertEqual(iface, "ens4")
 
-    @patch('netplan.cli.utils.get_interface_driver_name')
-    @patch('netplan.cli.utils.get_interface_macaddress')
+    @patch("netplan.cli.utils.get_interface_driver_name")
+    @patch("netplan.cli.utils.get_interface_macaddress")
     def test_find_matching_iface_name_and_drivers(self, gim, gidn):
         # we mock-out get_interface_driver_name to return useful values for the test
-        gidn.side_effect = lambda x: 'foo' if x == 'ens4' else 'bar'
-        gim.side_effect = lambda x: '00:01:02:03:04:05'
+        gidn.side_effect = lambda x: "foo" if x == "ens4" else "bar"
+        gim.side_effect = lambda x: "00:01:02:03:04:05"
 
-        state = self.load_conf('''network:
+        state = self.load_conf(
+            """network:
   ethernets:
     netplan-id:
       match:
         name: "ens?"
-        driver: ["baz", "f*", "quux"]''')
+        driver: ["baz", "f*", "quux"]"""
+        )
 
-        iface = utils.find_matching_iface(DEVICES, state['netplan-id'])
-        self.assertEqual(iface, 'ens4')
+        iface = utils.find_matching_iface(DEVICES, state["netplan-id"])
+        self.assertEqual(iface, "ens4")
 
-    @patch('netifaces.ifaddresses')
+    @patch("netifaces.ifaddresses")
     def test_interface_macaddress(self, ifaddr):
-        ifaddr.side_effect = lambda _: {netifaces.AF_LINK: [{'addr': '00:01:02:03:04:05'}]}
-        self.assertEqual(utils.get_interface_macaddress('eth42'), '00:01:02:03:04:05')
+        ifaddr.side_effect = lambda _: {netifaces.AF_LINK: [{"addr": "00:01:02:03:04:05"}]}
+        self.assertEqual(utils.get_interface_macaddress("eth42"), "00:01:02:03:04:05")
 
-    @patch('netifaces.ifaddresses')
+    @patch("netifaces.ifaddresses")
     def test_interface_macaddress_empty(self, ifaddr):
         ifaddr.side_effect = lambda _: {}
-        self.assertEqual(utils.get_interface_macaddress('eth42'), '')
+        self.assertEqual(utils.get_interface_macaddress("eth42"), "")
 
     def test_systemctl(self):
-        self.mock_systemctl = MockCmd('systemctl')
-        path_env = os.environ['PATH']
-        os.environ['PATH'] = os.path.dirname(self.mock_systemctl.path) + os.pathsep + path_env
-        utils.systemctl('start', ['service1', 'service2'])
-        self.assertEqual(self.mock_systemctl.calls(), [['systemctl', 'start', '--no-block', 'service1', 'service2']])
+        self.mock_systemctl = MockCmd("systemctl")
+        path_env = os.environ["PATH"]
+        os.environ["PATH"] = os.path.dirname(self.mock_systemctl.path) + os.pathsep + path_env
+        utils.systemctl("start", ["service1", "service2"])
+        self.assertEqual(
+            self.mock_systemctl.calls(),
+            [["systemctl", "start", "--no-block", "service1", "service2"]],
+        )
 
     def test_networkd_interfaces(self):
-        self.mock_networkctl = MockCmd('networkctl')
-        path_env = os.environ['PATH']
-        os.environ['PATH'] = os.path.dirname(self.mock_networkctl.path) + os.pathsep + path_env
-        self.mock_networkctl.set_output('''
+        self.mock_networkctl = MockCmd("networkctl")
+        path_env = os.environ["PATH"]
+        os.environ["PATH"] = os.path.dirname(self.mock_networkctl.path) + os.pathsep + path_env
+        self.mock_networkctl.set_output(
+            """
   1 lo              loopback carrier    unmanaged
   2 ens3            ether    routable   configured
   3 wlan0           wlan     routable   configuring
-174 wwan0           wwan     off        linger''')
+174 wwan0           wwan     off        linger"""
+        )
         res = utils.networkd_interfaces()
-        self.assertEqual(self.mock_networkctl.calls(), [['networkctl', '--no-pager', '--no-legend']])
-        self.assertIn('2', res)
-        self.assertIn('3', res)
+        self.assertEqual(
+            self.mock_networkctl.calls(), [["networkctl", "--no-pager", "--no-legend"]]
+        )
+        self.assertIn("2", res)
+        self.assertIn("3", res)
 
     def test_networkctl_reload(self):
-        self.mock_networkctl = MockCmd('networkctl')
-        path_env = os.environ['PATH']
-        os.environ['PATH'] = os.path.dirname(self.mock_networkctl.path) + os.pathsep + path_env
+        self.mock_networkctl = MockCmd("networkctl")
+        path_env = os.environ["PATH"]
+        os.environ["PATH"] = os.path.dirname(self.mock_networkctl.path) + os.pathsep + path_env
         utils.networkctl_reload()
-        self.assertEqual(self.mock_networkctl.calls(), [
-            ['networkctl', 'reload']
-        ])
+        self.assertEqual(self.mock_networkctl.calls(), [["networkctl", "reload"]])
 
     def test_networkctl_reconfigure(self):
-        self.mock_networkctl = MockCmd('networkctl')
-        path_env = os.environ['PATH']
-        os.environ['PATH'] = os.path.dirname(self.mock_networkctl.path) + os.pathsep + path_env
-        utils.networkctl_reconfigure(['3', '5'])
-        self.assertEqual(self.mock_networkctl.calls(), [
-            ['networkctl', 'reconfigure', '3', '5']
-        ])
+        self.mock_networkctl = MockCmd("networkctl")
+        path_env = os.environ["PATH"]
+        os.environ["PATH"] = os.path.dirname(self.mock_networkctl.path) + os.pathsep + path_env
+        utils.networkctl_reconfigure(["3", "5"])
+        self.assertEqual(self.mock_networkctl.calls(), [["networkctl", "reconfigure", "3", "5"]])
 
     def test_is_nm_snap_enabled(self):
-        self.mock_cmd = MockCmd('systemctl')
-        path_env = os.environ['PATH']
-        os.environ['PATH'] = os.path.dirname(self.mock_cmd.path) + os.pathsep + path_env
+        self.mock_cmd = MockCmd("systemctl")
+        path_env = os.environ["PATH"]
+        os.environ["PATH"] = os.path.dirname(self.mock_cmd.path) + os.pathsep + path_env
         self.assertTrue(utils.is_nm_snap_enabled())
-        self.assertEqual(self.mock_cmd.calls(), [
-            ['systemctl', '--quiet', 'is-enabled', 'snap.network-manager.networkmanager.service']
-        ])
+        self.assertEqual(
+            self.mock_cmd.calls(),
+            [["systemctl", "--quiet", "is-enabled", "snap.network-manager.networkmanager.service"]],
+        )
 
     def test_is_nm_snap_enabled_false(self):
-        self.mock_cmd = MockCmd('systemctl')
+        self.mock_cmd = MockCmd("systemctl")
         self.mock_cmd.set_returncode(1)
-        path_env = os.environ['PATH']
-        os.environ['PATH'] = os.path.dirname(self.mock_cmd.path) + os.pathsep + path_env
+        path_env = os.environ["PATH"]
+        os.environ["PATH"] = os.path.dirname(self.mock_cmd.path) + os.pathsep + path_env
         self.assertFalse(utils.is_nm_snap_enabled())
-        self.assertEqual(self.mock_cmd.calls(), [
-            ['systemctl', '--quiet', 'is-enabled', 'snap.network-manager.networkmanager.service']
-        ])
+        self.assertEqual(
+            self.mock_cmd.calls(),
+            [["systemctl", "--quiet", "is-enabled", "snap.network-manager.networkmanager.service"]],
+        )
 
     def test_systemctl_network_manager(self):
-        self.mock_cmd = MockCmd('systemctl')
-        path_env = os.environ['PATH']
-        os.environ['PATH'] = os.path.dirname(self.mock_cmd.path) + os.pathsep + path_env
-        utils.systemctl_network_manager('start')
-        self.assertEqual(self.mock_cmd.calls(), [
-            ['systemctl', '--quiet', 'is-enabled', 'snap.network-manager.networkmanager.service'],
-            ['systemctl', 'start', '--no-block', 'snap.network-manager.networkmanager.service']
-        ])
+        self.mock_cmd = MockCmd("systemctl")
+        path_env = os.environ["PATH"]
+        os.environ["PATH"] = os.path.dirname(self.mock_cmd.path) + os.pathsep + path_env
+        utils.systemctl_network_manager("start")
+        self.assertEqual(
+            self.mock_cmd.calls(),
+            [
+                [
+                    "systemctl",
+                    "--quiet",
+                    "is-enabled",
+                    "snap.network-manager.networkmanager.service",
+                ],
+                ["systemctl", "start", "--no-block", "snap.network-manager.networkmanager.service"],
+            ],
+        )
 
     def test_systemctl_is_active(self):
-        self.mock_cmd = MockCmd('systemctl')
-        path_env = os.environ['PATH']
-        os.environ['PATH'] = os.path.dirname(self.mock_cmd.path) + os.pathsep + path_env
-        self.assertTrue(utils.systemctl_is_active('some.service'))
-        self.assertEqual(self.mock_cmd.calls(), [
-            ['systemctl', '--quiet', 'is-active', 'some.service']
-        ])
+        self.mock_cmd = MockCmd("systemctl")
+        path_env = os.environ["PATH"]
+        os.environ["PATH"] = os.path.dirname(self.mock_cmd.path) + os.pathsep + path_env
+        self.assertTrue(utils.systemctl_is_active("some.service"))
+        self.assertEqual(
+            self.mock_cmd.calls(), [["systemctl", "--quiet", "is-active", "some.service"]]
+        )
 
     def test_systemctl_is_active_false(self):
-        self.mock_cmd = MockCmd('systemctl')
+        self.mock_cmd = MockCmd("systemctl")
         self.mock_cmd.set_returncode(1)
-        path_env = os.environ['PATH']
-        os.environ['PATH'] = os.path.dirname(self.mock_cmd.path) + os.pathsep + path_env
-        self.assertFalse(utils.systemctl_is_active('some.service'))
-        self.assertEqual(self.mock_cmd.calls(), [
-            ['systemctl', '--quiet', 'is-active', 'some.service']
-        ])
+        path_env = os.environ["PATH"]
+        os.environ["PATH"] = os.path.dirname(self.mock_cmd.path) + os.pathsep + path_env
+        self.assertFalse(utils.systemctl_is_active("some.service"))
+        self.assertEqual(
+            self.mock_cmd.calls(), [["systemctl", "--quiet", "is-active", "some.service"]]
+        )
 
     def test_systemctl_is_masked(self):
-        self.mock_cmd = MockCmd('systemctl')
-        self.mock_cmd.set_output('masked-runtime')
+        self.mock_cmd = MockCmd("systemctl")
+        self.mock_cmd.set_output("masked-runtime")
         self.mock_cmd.set_returncode(1)
-        path_env = os.environ['PATH']
-        os.environ['PATH'] = os.path.dirname(self.mock_cmd.path) + os.pathsep + path_env
-        self.assertTrue(utils.systemctl_is_masked('some.service'))
-        self.assertEqual(self.mock_cmd.calls(), [
-            ['systemctl', 'is-enabled', 'some.service']
-        ])
+        path_env = os.environ["PATH"]
+        os.environ["PATH"] = os.path.dirname(self.mock_cmd.path) + os.pathsep + path_env
+        self.assertTrue(utils.systemctl_is_masked("some.service"))
+        self.assertEqual(self.mock_cmd.calls(), [["systemctl", "is-enabled", "some.service"]])
 
     def test_systemctl_is_masked_false(self):
-        self.mock_cmd = MockCmd('systemctl')
-        self.mock_cmd.set_output('enabled')
+        self.mock_cmd = MockCmd("systemctl")
+        self.mock_cmd.set_output("enabled")
         self.mock_cmd.set_returncode(0)
-        path_env = os.environ['PATH']
-        os.environ['PATH'] = os.path.dirname(self.mock_cmd.path) + os.pathsep + path_env
-        self.assertFalse(utils.systemctl_is_masked('some.service'))
-        self.assertEqual(self.mock_cmd.calls(), [
-            ['systemctl', 'is-enabled', 'some.service']
-        ])
+        path_env = os.environ["PATH"]
+        os.environ["PATH"] = os.path.dirname(self.mock_cmd.path) + os.pathsep + path_env
+        self.assertFalse(utils.systemctl_is_masked("some.service"))
+        self.assertEqual(self.mock_cmd.calls(), [["systemctl", "is-enabled", "some.service"]])
 
     def test_systemctl_daemon_reload(self):
-        self.mock_cmd = MockCmd('systemctl')
-        path_env = os.environ['PATH']
-        os.environ['PATH'] = os.path.dirname(self.mock_cmd.path) + os.pathsep + path_env
+        self.mock_cmd = MockCmd("systemctl")
+        path_env = os.environ["PATH"]
+        os.environ["PATH"] = os.path.dirname(self.mock_cmd.path) + os.pathsep + path_env
         utils.systemctl_daemon_reload()
-        self.assertEqual(self.mock_cmd.calls(), [
-            ['systemctl', 'daemon-reload']
-        ])
+        self.assertEqual(self.mock_cmd.calls(), [["systemctl", "daemon-reload"]])
 
     def test_ip_addr_flush(self):
-        self.mock_cmd = MockCmd('ip')
-        path_env = os.environ['PATH']
-        os.environ['PATH'] = os.path.dirname(self.mock_cmd.path) + os.pathsep + path_env
-        utils.ip_addr_flush('eth42')
-        self.assertEqual(self.mock_cmd.calls(), [
-            ['ip', 'addr', 'flush', 'eth42']
-        ])
+        self.mock_cmd = MockCmd("ip")
+        path_env = os.environ["PATH"]
+        os.environ["PATH"] = os.path.dirname(self.mock_cmd.path) + os.pathsep + path_env
+        utils.ip_addr_flush("eth42")
+        self.assertEqual(self.mock_cmd.calls(), [["ip", "addr", "flush", "eth42"]])

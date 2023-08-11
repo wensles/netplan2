@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-'''netplan set command line'''
+"""netplan set command line"""
 
 import tempfile
 import re
@@ -24,25 +24,35 @@ import io
 from netplan.cli.utils import NetplanCommand
 import netplan.libnetplan as libnetplan
 
-FALLBACK_FILENAME = '70-netplan-set.yaml'
-GLOBAL_KEYS = ['renderer', 'version']
+FALLBACK_FILENAME = "70-netplan-set.yaml"
+GLOBAL_KEYS = ["renderer", "version"]
 
 
 class NetplanSet(NetplanCommand):
-
     def __init__(self):
-        super().__init__(command_id='set',
-                         description='Add new setting by specifying a dotted key=value pair like ethernets.eth0.dhcp4=true',
-                         leaf=True)
+        super().__init__(
+            command_id="set",
+            description="Add new setting by specifying a dotted key=value pair like ethernets.eth0.dhcp4=true",
+            leaf=True,
+        )
 
     def run(self):
-        self.parser.add_argument('key_value', type=str,
-                                 help='The nested key=value pair in dotted format. Value can be NULL to delete a key.')
-        self.parser.add_argument('--origin-hint', type=str,
-                                 help='Can be used to help choose a name for the overwrite YAML file. \
-                                       A .yaml suffix will be appended automatically.')
-        self.parser.add_argument('--root-dir', default='/',
-                                 help='Overwrite configuration files in this root directory instead of /')
+        self.parser.add_argument(
+            "key_value",
+            type=str,
+            help="The nested key=value pair in dotted format. Value can be NULL to delete a key.",
+        )
+        self.parser.add_argument(
+            "--origin-hint",
+            type=str,
+            help="Can be used to help choose a name for the overwrite YAML file. \
+                                       A .yaml suffix will be appended automatically.",
+        )
+        self.parser.add_argument(
+            "--root-dir",
+            default="/",
+            help="Overwrite configuration files in this root directory instead of /",
+        )
 
         self.func = self.command_set
 
@@ -51,21 +61,21 @@ class NetplanSet(NetplanCommand):
 
     def command_set(self):
         if self.origin_hint is not None and len(self.origin_hint) == 0:
-            raise Exception('Invalid/empty origin-hint')
+            raise Exception("Invalid/empty origin-hint")
         if self.origin_hint:
-            filename = '.'.join((self.origin_hint, 'yaml'))
+            filename = ".".join((self.origin_hint, "yaml"))
         else:
             filename = None
-        split = self.key_value.split('=', 1)
+        split = self.key_value.split("=", 1)
         if len(split) != 2:
-            raise Exception('Invalid value specified')
+            raise Exception("Invalid value specified")
 
         key, value = split
-        if not key.startswith('network'):
-            key = '.'.join(('network', key))
+        if not key.startswith("network"):
+            key = ".".join(("network", key))
 
         # Split the string into a list on the dot separators, and unescape the remaining dots
-        yaml_path = [s.replace(r'\.', '.') for s in re.split(r'(?<!\\)\.', key)]
+        yaml_path = [s.replace(r"\.", ".") for s in re.split(r"(?<!\\)\.", key)]
 
         parser = libnetplan.Parser()
         with tempfile.TemporaryFile() as tmp:

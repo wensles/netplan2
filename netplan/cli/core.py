@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-'''netplan command line'''
+"""netplan command line"""
 
 import logging
 import os
@@ -24,18 +24,13 @@ import os
 import netplan.cli.utils as utils
 
 
-FALLBACK_PATH = '/usr/bin:/snap/bin'
+FALLBACK_PATH = "/usr/bin:/snap/bin"
 
 
 class Netplan(utils.NetplanCommand):
-
     def __init__(self):
-        super().__init__(command_id='',
-                         description='Network configuration in YAML',
-                         leaf=False)
-        os.environ.update({
-            'LC_ALL': 'C',
-            'PATH': os.getenv('PATH', FALLBACK_PATH)})
+        super().__init__(command_id="", description="Network configuration in YAML", leaf=False)
+        os.environ.update({"LC_ALL": "C", "PATH": os.getenv("PATH", FALLBACK_PATH)})
 
     def parse_args(self):
         import netplan.cli.commands
@@ -48,9 +43,9 @@ class Netplan(utils.NetplanCommand):
         self.parse_args()
 
         if self.debug:
-            logging.basicConfig(level=logging.DEBUG, format='%(levelname)s:%(message)s')
-            os.environ['G_MESSAGES_DEBUG'] = 'all'
+            logging.basicConfig(level=logging.DEBUG, format="%(levelname)s:%(message)s")
+            os.environ["G_MESSAGES_DEBUG"] = "all"
         else:
-            logging.basicConfig(level=logging.INFO, format='%(message)s')
+            logging.basicConfig(level=logging.INFO, format="%(message)s")
 
         self.run_command()

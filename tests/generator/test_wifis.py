@@ -23,9 +23,9 @@ from .base import TestBase, ND_WIFI_DHCP4, SD_WPA, NM_MANAGED, NM_UNMANAGED
 
 
 class TestNetworkd(TestBase):
-
     def test_wifi(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   wifis:
     wl0:
@@ -55,64 +55,148 @@ class TestNetworkd(TestBase):
           band: 2.4G
         band-no-channel2:
           band: 5G
-      dhcp4: yes''')
+      dhcp4: yes"""
+        )
 
-        self.assert_networkd({'wl0.network': ND_WIFI_DHCP4 % 'wl0'})
+        self.assert_networkd({"wl0.network": ND_WIFI_DHCP4 % "wl0"})
         self.assert_nm(None)
-        self.assert_nm_udev(NM_UNMANAGED % 'wl0')
+        self.assert_nm_udev(NM_UNMANAGED % "wl0")
 
         # generates wpa config and enables wpasupplicant unit
-        with open(os.path.join(self.workdir.name, 'run/netplan/wpa-wl0.conf')) as f:
+        with open(os.path.join(self.workdir.name, "run/netplan/wpa-wl0.conf")) as f:
             new_config = f.read()
 
-            network = 'ssid="{}"\n  freq_list='.format('band-no-channel2')
-            freqs_5GHz = [5610, 5310, 5620, 5320, 5630, 5640, 5340, 5035, 5040, 5045, 5055, 5060, 5660, 5680, 5670, 5080, 5690,
-                          5700, 5710, 5720, 5825, 5745, 5755, 5805, 5765, 5160, 5775, 5170, 5480, 5180, 5795, 5190, 5500, 5200,
-                          5510, 5210, 5520, 5220, 5530, 5230, 5540, 5240, 5550, 5250, 5560, 5260, 5570, 5270, 5580, 5280, 5590,
-                          5290, 5600, 5300, 5865, 5845, 5785]
+            network = 'ssid="{}"\n  freq_list='.format("band-no-channel2")
+            freqs_5GHz = [
+                5610,
+                5310,
+                5620,
+                5320,
+                5630,
+                5640,
+                5340,
+                5035,
+                5040,
+                5045,
+                5055,
+                5060,
+                5660,
+                5680,
+                5670,
+                5080,
+                5690,
+                5700,
+                5710,
+                5720,
+                5825,
+                5745,
+                5755,
+                5805,
+                5765,
+                5160,
+                5775,
+                5170,
+                5480,
+                5180,
+                5795,
+                5190,
+                5500,
+                5200,
+                5510,
+                5210,
+                5520,
+                5220,
+                5530,
+                5230,
+                5540,
+                5240,
+                5550,
+                5250,
+                5560,
+                5260,
+                5570,
+                5270,
+                5580,
+                5280,
+                5590,
+                5290,
+                5600,
+                5300,
+                5865,
+                5845,
+                5785,
+            ]
             freqs = new_config.split(network)
-            freqs = freqs[1].split('\n')[0]
-            self.assertEqual(len(freqs.split(' ')), len(freqs_5GHz))
+            freqs = freqs[1].split("\n")[0]
+            self.assertEqual(len(freqs.split(" ")), len(freqs_5GHz))
             for freq in freqs_5GHz:
-                self.assertRegex(new_config, '{}[ 0-9]*{}[ 0-9]*\n'.format(network, freq))
+                self.assertRegex(new_config, "{}[ 0-9]*{}[ 0-9]*\n".format(network, freq))
 
-            network = 'ssid="{}"\n  freq_list='.format('band-no-channel')
-            freqs_24GHz = [2412, 2417, 2422, 2427, 2432, 2442, 2447, 2437, 2452, 2457, 2462, 2467, 2472, 2484]
+            network = 'ssid="{}"\n  freq_list='.format("band-no-channel")
+            freqs_24GHz = [
+                2412,
+                2417,
+                2422,
+                2427,
+                2432,
+                2442,
+                2447,
+                2437,
+                2452,
+                2457,
+                2462,
+                2467,
+                2472,
+                2484,
+            ]
             freqs = new_config.split(network)
-            freqs = freqs[1].split('\n')[0]
-            self.assertEqual(len(freqs.split(' ')), len(freqs_24GHz))
+            freqs = freqs[1].split("\n")[0]
+            self.assertEqual(len(freqs.split(" ")), len(freqs_24GHz))
             for freq in freqs_24GHz:
-                self.assertRegex(new_config, '{}[ 0-9]*{}[ 0-9]*\n'.format(network, freq))
+                self.assertRegex(new_config, "{}[ 0-9]*{}[ 0-9]*\n".format(network, freq))
 
-            self.assertIn('''
+            self.assertIn(
+                """
 network={
   ssid="channel-no-band"
   key_mgmt=NONE
 }
-''', new_config)
-            self.assertIn('''
+""",
+                new_config,
+            )
+            self.assertIn(
+                """
 network={
   ssid="peer2peer"
   mode=1
   key_mgmt=NONE
 }
-''', new_config)
-            self.assertIn('''
+""",
+                new_config,
+            )
+            self.assertIn(
+                """
 network={
   ssid="hidden-y"
   scan_ssid=1
   key_mgmt=WPA-PSK
   psk="0bscur1ty"
 }
-''', new_config)
-            self.assertIn('''
+""",
+                new_config,
+            )
+            self.assertIn(
+                """
 network={
   ssid="hidden-n"
   key_mgmt=WPA-PSK
   psk="5ecur1ty"
 }
-''', new_config)
-            self.assertIn('''
+""",
+                new_config,
+            )
+            self.assertIn(
+                """
 network={
   ssid="workplace"
   bssid=de:ad:be:ef:ca:fe
@@ -120,8 +204,11 @@ network={
   key_mgmt=WPA-PSK
   psk="c0mpany1"
 }
-''', new_config)
-            self.assertIn('''
+""",
+                new_config,
+            )
+            self.assertIn(
+                """
 network={
   ssid="Joe's Home"
   bssid=00:11:22:33:44:55
@@ -129,23 +216,41 @@ network={
   key_mgmt=WPA-PSK
   psk="s0s3kr1t"
 }
-''', new_config)
-            self.assertIn('country=DE\n', new_config)
+""",
+                new_config,
+            )
+            self.assertIn("country=DE\n", new_config)
             self.assertEqual(stat.S_IMODE(os.fstat(f.fileno()).st_mode), 0o600)
-        self.assertTrue(os.path.isfile(os.path.join(
-            self.workdir.name, 'run/systemd/system/netplan-wpa-wl0.service')))
-        with open(os.path.join(self.workdir.name, 'run/systemd/system/netplan-wpa-wl0.service')) as f:
-            self.assertEqual(f.read(), SD_WPA % {'iface': 'wl0', 'drivers': 'nl80211,wext'})
+        self.assertTrue(
+            os.path.isfile(
+                os.path.join(self.workdir.name, "run/systemd/system/netplan-wpa-wl0.service")
+            )
+        )
+        with open(
+            os.path.join(self.workdir.name, "run/systemd/system/netplan-wpa-wl0.service")
+        ) as f:
+            self.assertEqual(f.read(), SD_WPA % {"iface": "wl0", "drivers": "nl80211,wext"})
             self.assertEqual(stat.S_IMODE(os.fstat(f.fileno()).st_mode), 0o644)
-        self.assertTrue(os.path.islink(os.path.join(
-            self.workdir.name, 'run/systemd/system/systemd-networkd.service.wants/netplan-wpa-wl0.service')))
+        self.assertTrue(
+            os.path.islink(
+                os.path.join(
+                    self.workdir.name,
+                    "run/systemd/system/systemd-networkd.service.wants/netplan-wpa-wl0.service",
+                )
+            )
+        )
 
     def test_wifi_upgrade(self):
         # pretend an old 'netplan-wpa@*.service' link still exists on an upgraded system
-        os.makedirs(os.path.join(self.workdir.name, 'lib/systemd/system'))
-        os.makedirs(os.path.join(self.workdir.name, 'run/systemd/system/systemd-networkd.service.wants'))
-        with open(os.path.join(self.workdir.name, 'lib/systemd/system/netplan-wpa@.service'), 'w') as out:
-            out.write('''[Unit]
+        os.makedirs(os.path.join(self.workdir.name, "lib/systemd/system"))
+        os.makedirs(
+            os.path.join(self.workdir.name, "run/systemd/system/systemd-networkd.service.wants")
+        )
+        with open(
+            os.path.join(self.workdir.name, "lib/systemd/system/netplan-wpa@.service"), "w"
+        ) as out:
+            out.write(
+                """[Unit]
 Description=WPA supplicant for netplan %I
 DefaultDependencies=no
 Requires=sys-subsystem-net-devices-%i.device
@@ -155,64 +260,131 @@ Wants=network.target
 
 [Service]
 Type=simple
-ExecStart=/sbin/wpa_supplicant -c /run/netplan/wpa-%I.conf -i%I''')
-        os.symlink(os.path.join(self.workdir.name, 'lib/systemd/system/netplan-wpa@.service'),
-                   os.path.join(self.workdir.name, 'run/systemd/system/systemd-networkd.service.wants/netplan-wpa@wl0.service'))
+ExecStart=/sbin/wpa_supplicant -c /run/netplan/wpa-%I.conf -i%I"""
+            )
+        os.symlink(
+            os.path.join(self.workdir.name, "lib/systemd/system/netplan-wpa@.service"),
+            os.path.join(
+                self.workdir.name,
+                "run/systemd/system/systemd-networkd.service.wants/netplan-wpa@wl0.service",
+            ),
+        )
 
         # run generate, which should cleanup the old files/symlinks
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   wifis:
     wl0:
       access-points:
         "Joe's Home":
           password: "s0s3kr1t"
-      dhcp4: yes''')
+      dhcp4: yes"""
+        )
 
         # verify new files/links exist, while old have been removed
-        self.assertTrue(os.path.isfile(os.path.join(
-            self.workdir.name, 'run/systemd/system/netplan-wpa-wl0.service')))
-        self.assertTrue(os.path.islink(os.path.join(
-            self.workdir.name, 'run/systemd/system/systemd-networkd.service.wants/netplan-wpa-wl0.service')))
+        self.assertTrue(
+            os.path.isfile(
+                os.path.join(self.workdir.name, "run/systemd/system/netplan-wpa-wl0.service")
+            )
+        )
+        self.assertTrue(
+            os.path.islink(
+                os.path.join(
+                    self.workdir.name,
+                    "run/systemd/system/systemd-networkd.service.wants/netplan-wpa-wl0.service",
+                )
+            )
+        )
         # old files/links
-        self.assertTrue(os.path.isfile(os.path.join(
-            self.workdir.name, 'lib/systemd/system/netplan-wpa@.service')))
-        self.assertFalse(os.path.islink(os.path.join(
-            self.workdir.name, 'run/systemd/system/systemd-networkd.service.wants/netplan-wpa@wl0.service')))
+        self.assertTrue(
+            os.path.isfile(
+                os.path.join(self.workdir.name, "lib/systemd/system/netplan-wpa@.service")
+            )
+        )
+        self.assertFalse(
+            os.path.islink(
+                os.path.join(
+                    self.workdir.name,
+                    "run/systemd/system/systemd-networkd.service.wants/netplan-wpa@wl0.service",
+                )
+            )
+        )
 
         # pretend another old systemd service file exists for wl1
-        os.symlink(os.path.join(self.workdir.name, 'lib/systemd/system/netplan-wpa@.service'),
-                   os.path.join(self.workdir.name, 'run/systemd/system/systemd-networkd.service.wants/netplan-wpa@wl1.service'))
+        os.symlink(
+            os.path.join(self.workdir.name, "lib/systemd/system/netplan-wpa@.service"),
+            os.path.join(
+                self.workdir.name,
+                "run/systemd/system/systemd-networkd.service.wants/netplan-wpa@wl1.service",
+            ),
+        )
 
         # run generate again, to verify the historical netplan-wpa@.service links and wl0 links are gone
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   wifis:
     wl1:
       access-points:
         "Other Home":
           password: "s0s3kr1t"
-      dhcp4: yes''')
+      dhcp4: yes"""
+        )
 
         # verify new files/links exist, while old have been removed
-        self.assertTrue(os.path.isfile(os.path.join(
-            self.workdir.name, 'run/systemd/system/netplan-wpa-wl1.service')))
-        self.assertTrue(os.path.islink(os.path.join(
-            self.workdir.name, 'run/systemd/system/systemd-networkd.service.wants/netplan-wpa-wl1.service')))
+        self.assertTrue(
+            os.path.isfile(
+                os.path.join(self.workdir.name, "run/systemd/system/netplan-wpa-wl1.service")
+            )
+        )
+        self.assertTrue(
+            os.path.islink(
+                os.path.join(
+                    self.workdir.name,
+                    "run/systemd/system/systemd-networkd.service.wants/netplan-wpa-wl1.service",
+                )
+            )
+        )
         # old files/links
-        self.assertTrue(os.path.isfile(os.path.join(
-            self.workdir.name, 'lib/systemd/system/netplan-wpa@.service')))
-        self.assertFalse(os.path.islink(os.path.join(
-            self.workdir.name, 'run/systemd/system/systemd-networkd.service.wants/netplan-wpa@wl1.service')))
-        self.assertFalse(os.path.islink(os.path.join(
-            self.workdir.name, 'run/systemd/system/systemd-networkd.service.wants/netplan-wpa@wl0.service')))
-        self.assertFalse(os.path.isfile(os.path.join(
-            self.workdir.name, 'run/systemd/system/netplan-wpa-wl0.service')))
-        self.assertFalse(os.path.islink(os.path.join(
-            self.workdir.name, 'run/systemd/system/systemd-networkd.service.wants/netplan-wpa-wl0.service')))
+        self.assertTrue(
+            os.path.isfile(
+                os.path.join(self.workdir.name, "lib/systemd/system/netplan-wpa@.service")
+            )
+        )
+        self.assertFalse(
+            os.path.islink(
+                os.path.join(
+                    self.workdir.name,
+                    "run/systemd/system/systemd-networkd.service.wants/netplan-wpa@wl1.service",
+                )
+            )
+        )
+        self.assertFalse(
+            os.path.islink(
+                os.path.join(
+                    self.workdir.name,
+                    "run/systemd/system/systemd-networkd.service.wants/netplan-wpa@wl0.service",
+                )
+            )
+        )
+        self.assertFalse(
+            os.path.isfile(
+                os.path.join(self.workdir.name, "run/systemd/system/netplan-wpa-wl0.service")
+            )
+        )
+        self.assertFalse(
+            os.path.islink(
+                os.path.join(
+                    self.workdir.name,
+                    "run/systemd/system/systemd-networkd.service.wants/netplan-wpa-wl0.service",
+                )
+            )
+        )
 
     def test_wifi_route(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   wifis:
     wl0:
@@ -222,9 +394,12 @@ ExecStart=/sbin/wpa_supplicant -c /run/netplan/wpa-%I.conf -i%I''')
       dhcp4: yes
       routes:
         - to: 10.10.10.0/24
-          via: 8.8.8.8''')
+          via: 8.8.8.8"""
+        )
 
-        self.assert_networkd({'wl0.network': '''[Match]
+        self.assert_networkd(
+            {
+                "wl0.network": """[Match]
 Name=wl0
 
 [Network]
@@ -238,13 +413,16 @@ Gateway=8.8.8.8
 [DHCP]
 RouteMetric=600
 UseMTU=true
-'''})
+"""
+            }
+        )
 
         self.assert_nm(None)
-        self.assert_nm_udev(NM_UNMANAGED % 'wl0')
+        self.assert_nm_udev(NM_UNMANAGED % "wl0")
 
     def test_wifi_match(self):
-        err = self.generate('''network:
+        err = self.generate(
+            """network:
   version: 2
   wifis:
     somewifi:
@@ -253,11 +431,14 @@ UseMTU=true
       access-points:
         workplace:
           password: "c0mpany1"
-      dhcp4: yes''', expect_fail=True)
-        self.assertIn('networkd backend does not support wifi with match:', err)
+      dhcp4: yes""",
+            expect_fail=True,
+        )
+        self.assertIn("networkd backend does not support wifi with match:", err)
 
     def test_wifi_ap(self):
-        err = self.generate('''network:
+        err = self.generate(
+            """network:
   version: 2
   wifis:
     wl0:
@@ -265,11 +446,14 @@ UseMTU=true
         workplace:
           password: "c0mpany1"
           mode: ap
-      dhcp4: yes''', expect_fail=True)
-        self.assertIn('wl0: workplace: networkd does not support this wifi mode', err)
+      dhcp4: yes""",
+            expect_fail=True,
+        )
+        self.assertIn("wl0: workplace: networkd does not support this wifi mode", err)
 
     def test_wifi_wowlan(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   wifis:
     wl0:
@@ -282,71 +466,106 @@ UseMTU=true
         - four_way_handshake
         - rfkill_release
       access-points:
-        homenet: {mode: infrastructure}''')
+        homenet: {mode: infrastructure}"""
+        )
 
-        self.assert_networkd({'wl0.network': '''[Match]
+        self.assert_networkd(
+            {
+                "wl0.network": """[Match]
 Name=wl0
 
 [Network]
 LinkLocalAddressing=ipv6
-'''})
+"""
+            }
+        )
         self.assert_nm(None)
-        self.assert_nm_udev(NM_UNMANAGED % 'wl0')
+        self.assert_nm_udev(NM_UNMANAGED % "wl0")
 
         # generates wpa config and enables wpasupplicant unit
-        with open(os.path.join(self.workdir.name, 'run/netplan/wpa-wl0.conf')) as f:
+        with open(os.path.join(self.workdir.name, "run/netplan/wpa-wl0.conf")) as f:
             new_config = f.read()
-            self.assertIn('''
+            self.assertIn(
+                """
 wowlan_triggers=any disconnect magic_pkt gtk_rekey_failure eap_identity_req four_way_handshake rfkill_release
 network={
   ssid="homenet"
   key_mgmt=NONE
 }
-''', new_config)
+""",
+                new_config,
+            )
             self.assertEqual(stat.S_IMODE(os.fstat(f.fileno()).st_mode), 0o600)
-        self.assertTrue(os.path.isfile(os.path.join(
-            self.workdir.name, 'run/systemd/system/netplan-wpa-wl0.service')))
-        self.assertTrue(os.path.islink(os.path.join(
-            self.workdir.name, 'run/systemd/system/systemd-networkd.service.wants/netplan-wpa-wl0.service')))
+        self.assertTrue(
+            os.path.isfile(
+                os.path.join(self.workdir.name, "run/systemd/system/netplan-wpa-wl0.service")
+            )
+        )
+        self.assertTrue(
+            os.path.islink(
+                os.path.join(
+                    self.workdir.name,
+                    "run/systemd/system/systemd-networkd.service.wants/netplan-wpa-wl0.service",
+                )
+            )
+        )
 
     def test_wifi_wowlan_default(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   wifis:
     wl0:
       wakeonwlan: [default]
       access-points:
-        homenet: {mode: infrastructure}''')
+        homenet: {mode: infrastructure}"""
+        )
 
-        self.assert_networkd({'wl0.network': '''[Match]
+        self.assert_networkd(
+            {
+                "wl0.network": """[Match]
 Name=wl0
 
 [Network]
 LinkLocalAddressing=ipv6
-'''})
+"""
+            }
+        )
         self.assert_nm(None)
-        self.assert_nm_udev(NM_UNMANAGED % 'wl0')
+        self.assert_nm_udev(NM_UNMANAGED % "wl0")
 
         # generates wpa config and enables wpasupplicant unit
-        with open(os.path.join(self.workdir.name, 'run/netplan/wpa-wl0.conf')) as f:
+        with open(os.path.join(self.workdir.name, "run/netplan/wpa-wl0.conf")) as f:
             new_config = f.read()
-            self.assertIn('''
+            self.assertIn(
+                """
 network={
   ssid="homenet"
   key_mgmt=NONE
 }
-''', new_config)
+""",
+                new_config,
+            )
             self.assertEqual(stat.S_IMODE(os.fstat(f.fileno()).st_mode), 0o600)
-        self.assertTrue(os.path.isfile(os.path.join(
-            self.workdir.name, 'run/systemd/system/netplan-wpa-wl0.service')))
-        self.assertTrue(os.path.islink(os.path.join(
-            self.workdir.name, 'run/systemd/system/systemd-networkd.service.wants/netplan-wpa-wl0.service')))
+        self.assertTrue(
+            os.path.isfile(
+                os.path.join(self.workdir.name, "run/systemd/system/netplan-wpa-wl0.service")
+            )
+        )
+        self.assertTrue(
+            os.path.islink(
+                os.path.join(
+                    self.workdir.name,
+                    "run/systemd/system/systemd-networkd.service.wants/netplan-wpa-wl0.service",
+                )
+            )
+        )
 
 
 class TestNetworkManager(TestBase):
-
     def test_wifi_default(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   wifis:
@@ -372,9 +591,12 @@ class TestNetworkManager(TestBase):
           channel: 22
         band-no-channel:
           band: 5GHz
-      dhcp4: yes''')
+      dhcp4: yes"""
+        )
 
-        self.assert_nm({'wl0-Joe%27s%20Home': '''[connection]
+        self.assert_nm(
+            {
+                "wl0-Joe%27s%20Home": """[connection]
 id=netplan-wl0-Joe's Home
 type=wifi
 interface-name=wl0
@@ -395,8 +617,8 @@ channel=11
 [wifi-security]
 key-mgmt=wpa-psk
 psk=s0s3kr1t
-''',
-                        'wl0-workplace': '''[connection]
+""",
+                "wl0-workplace": """[connection]
 id=netplan-wl0-workplace
 type=wifi
 interface-name=wl0
@@ -417,8 +639,8 @@ channel=100
 [wifi-security]
 key-mgmt=wpa-psk
 psk=c0mpany1
-''',
-                        'wl0-hidden-y': '''[connection]
+""",
+                "wl0-hidden-y": """[connection]
 id=netplan-wl0-hidden-y
 type=wifi
 interface-name=wl0
@@ -437,8 +659,8 @@ hidden=true
 [wifi-security]
 key-mgmt=wpa-psk
 psk=0bscur1ty
-''',
-                        'wl0-hidden-n': '''[connection]
+""",
+                "wl0-hidden-n": """[connection]
 id=netplan-wl0-hidden-n
 type=wifi
 interface-name=wl0
@@ -456,8 +678,8 @@ mode=infrastructure
 [wifi-security]
 key-mgmt=wpa-psk
 psk=5ecur1ty
-''',
-                        'wl0-channel-no-band': '''[connection]
+""",
+                "wl0-channel-no-band": """[connection]
 id=netplan-wl0-channel-no-band
 type=wifi
 interface-name=wl0
@@ -471,8 +693,8 @@ method=ignore
 [wifi]
 ssid=channel-no-band
 mode=infrastructure
-''',
-                        'wl0-band-no-channel': '''[connection]
+""",
+                "wl0-band-no-channel": """[connection]
 id=netplan-wl0-band-no-channel
 type=wifi
 interface-name=wl0
@@ -487,12 +709,15 @@ method=ignore
 ssid=band-no-channel
 mode=infrastructure
 band=a
-'''})
+""",
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'wl0')
+        self.assert_nm_udev(NM_MANAGED % "wl0")
 
     def test_wifi_match_mac(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   wifis:
@@ -500,9 +725,12 @@ band=a
       match:
         macaddress: 11:22:33:44:55:66
       access-points:
-        workplace: {}''')
+        workplace: {}"""
+        )
 
-        self.assert_nm({'all-workplace': '''[connection]
+        self.assert_nm(
+            {
+                "all-workplace": """[connection]
 id=netplan-all-workplace
 type=wifi
 
@@ -516,19 +744,25 @@ method=link-local
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
 
     def test_wifi_match_all(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   wifis:
     all:
       match: {}
       access-points:
-        workplace: {mode: infrastructure}''')
+        workplace: {mode: infrastructure}"""
+        )
 
-        self.assert_nm({'all-workplace': '''[connection]
+        self.assert_nm(
+            {
+                "all-workplace": """[connection]
 id=netplan-all-workplace
 type=wifi
 
@@ -541,12 +775,16 @@ method=ignore
 [wifi]
 ssid=workplace
 mode=infrastructure
-'''}, '''[device-netplan.wifis.all]
+"""
+            },
+            """[device-netplan.wifis.all]
 match-device=type:wifi
-managed=1\n\n''')
+managed=1\n\n""",
+        )
 
     def test_wifi_ap(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   wifis:
@@ -554,9 +792,12 @@ managed=1\n\n''')
       access-points:
         homenet:
           mode: ap
-          password: s0s3cret''')
+          password: s0s3cret"""
+        )
 
-        self.assert_nm({'wl0-homenet': '''[connection]
+        self.assert_nm(
+            {
+                "wl0-homenet": """[connection]
 id=netplan-wl0-homenet
 type=wifi
 interface-name=wl0
@@ -574,21 +815,27 @@ mode=ap
 [wifi-security]
 key-mgmt=wpa-psk
 psk=s0s3cret
-'''})
+"""
+            }
+        )
         self.assert_networkd({})
-        self.assert_nm_udev(NM_MANAGED % 'wl0')
+        self.assert_nm_udev(NM_MANAGED % "wl0")
 
     def test_wifi_adhoc(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   wifis:
     wl0:
       access-points:
         homenet:
-          mode: adhoc''')
+          mode: adhoc"""
+        )
 
-        self.assert_nm({'wl0-homenet': '''[connection]
+        self.assert_nm(
+            {
+                "wl0-homenet": """[connection]
 id=netplan-wl0-homenet
 type=wifi
 interface-name=wl0
@@ -602,19 +849,25 @@ method=ignore
 [wifi]
 ssid=homenet
 mode=adhoc
-'''})
+"""
+            }
+        )
 
     def test_wifi_wowlan(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   wifis:
     wl0:
       wakeonwlan: [any, tcp, four_way_handshake, magic_pkt]
       access-points:
-        homenet: {mode: infrastructure}''')
+        homenet: {mode: infrastructure}"""
+        )
 
-        self.assert_nm({'wl0-homenet': '''[connection]
+        self.assert_nm(
+            {
+                "wl0-homenet": """[connection]
 id=netplan-wl0-homenet
 type=wifi
 interface-name=wl0
@@ -629,19 +882,25 @@ method=link-local
 
 [ipv6]
 method=ignore
-'''})
+"""
+            }
+        )
 
     def test_wifi_wowlan_default(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   wifis:
     wl0:
       wakeonwlan: [default]
       access-points:
-        homenet: {mode: infrastructure}''')
+        homenet: {mode: infrastructure}"""
+        )
 
-        self.assert_nm({'wl0-homenet': '''[connection]
+        self.assert_nm(
+            {
+                "wl0-homenet": """[connection]
 id=netplan-wl0-homenet
 type=wifi
 interface-name=wl0
@@ -655,10 +914,13 @@ method=ignore
 [wifi]
 ssid=homenet
 mode=infrastructure
-'''})
+"""
+            }
+        )
 
     def test_wifi_regdom(self):
-        out = self.generate('''network:
+        out = self.generate(
+            """network:
   wifis:
     wl0:
       regulatory-domain: GB
@@ -667,48 +929,61 @@ mode=infrastructure
     wl1:
       regulatory-domain: DE
       access-points:
-        homenet2: {mode: infrastructure}''')
+        homenet2: {mode: infrastructure}"""
+        )
 
-        self.assertIn('wl1: Conflicting regulatory-domain (GB vs DE)', out)
-        with open(os.path.join(self.workdir.name, 'run/netplan/wpa-wl0.conf')) as f:
+        self.assertIn("wl1: Conflicting regulatory-domain (GB vs DE)", out)
+        with open(os.path.join(self.workdir.name, "run/netplan/wpa-wl0.conf")) as f:
             new_config = f.read()
-            self.assertIn('country=GB\n', new_config)
-        with open(os.path.join(self.workdir.name, 'run/netplan/wpa-wl1.conf')) as f:
+            self.assertIn("country=GB\n", new_config)
+        with open(os.path.join(self.workdir.name, "run/netplan/wpa-wl1.conf")) as f:
             new_config = f.read()
-            self.assertIn('country=DE\n', new_config)
-        with open(os.path.join(self.workdir.name, 'run/systemd/system/netplan-regdom.service')) as f:
+            self.assertIn("country=DE\n", new_config)
+        with open(
+            os.path.join(self.workdir.name, "run/systemd/system/netplan-regdom.service")
+        ) as f:
             new_config = f.read()
-            self.assertIn('ExecStart=/usr/sbin/iw reg set DE\n', new_config)
+            self.assertIn("ExecStart=/usr/sbin/iw reg set DE\n", new_config)
 
 
 class TestConfigErrors(TestBase):
-
     def test_wifi_invalid_wowlan(self):
-        err = self.generate('''network:
+        err = self.generate(
+            """network:
   version: 2
   wifis:
     wl0:
       wakeonwlan: [bogus]
       access-points:
-        homenet: {mode: infrastructure}''', expect_fail=True)
+        homenet: {mode: infrastructure}""",
+            expect_fail=True,
+        )
         self.assertIn("Error in network definition: invalid value for wakeonwlan: 'bogus'", err)
 
     def test_wifi_wowlan_unsupported(self):
-        err = self.generate('''network:
+        err = self.generate(
+            """network:
   version: 2
   wifis:
     wl0:
       wakeonwlan: [tcp]
       access-points:
-        homenet: {mode: infrastructure}''', expect_fail=True)
+        homenet: {mode: infrastructure}""",
+            expect_fail=True,
+        )
         self.assertIn("ERROR: unsupported wowlan_triggers mask: 0x100", err)
 
     def test_wifi_wowlan_exclusive(self):
-        err = self.generate('''network:
+        err = self.generate(
+            """network:
   version: 2
   wifis:
     wl0:
       wakeonwlan: [default, magic_pkt]
       access-points:
-        homenet: {mode: infrastructure}''', expect_fail=True)
-        self.assertIn("Error in network definition: 'default' is an exclusive flag for wakeonwlan", err)
+        homenet: {mode: infrastructure}""",
+            expect_fail=True,
+        )
+        self.assertIn(
+            "Error in network definition: 'default' is an exclusive flag for wakeonwlan", err
+        )

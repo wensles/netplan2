@@ -31,15 +31,19 @@ class TestConfigManager(unittest.TestCase):
         os.makedirs(os.path.join(self.workdir.name, "etc/netplan"))
         os.makedirs(os.path.join(self.workdir.name, "run/systemd/network"))
         os.makedirs(os.path.join(self.workdir.name, "run/NetworkManager/system-connections"))
-        with open(os.path.join(self.workdir.name, "newfile.yaml"), 'w') as fd:
-            print('''network:
+        with open(os.path.join(self.workdir.name, "newfile.yaml"), "w") as fd:
+            print(
+                """network:
   version: 2
   ethernets:
     ethtest:
       dhcp4: yes
-''', file=fd)
-        with open(os.path.join(self.workdir.name, "newfile_merging.yaml"), 'w') as fd:
-            print('''network:
+""",
+                file=fd,
+            )
+        with open(os.path.join(self.workdir.name, "newfile_merging.yaml"), "w") as fd:
+            print(
+                """network:
   version: 2
   ethernets:
     eth0:
@@ -48,33 +52,45 @@ class TestConfigManager(unittest.TestCase):
       dhcp4: on
     ethbr1:
       dhcp4: on
-''', file=fd)
-        with open(os.path.join(self.workdir.name, "newfile_emptydict.yaml"), 'w') as fd:
-            print('''network:
+""",
+                file=fd,
+            )
+        with open(os.path.join(self.workdir.name, "newfile_emptydict.yaml"), "w") as fd:
+            print(
+                """network:
   version: 2
   ethernets:
     eth0: {}
   bridges:
     br666: {}
-''', file=fd)
-        with open(os.path.join(self.workdir.name, "ovs_merging.yaml"), 'w') as fd:
-            print('''network:
+""",
+                file=fd,
+            )
+        with open(os.path.join(self.workdir.name, "ovs_merging.yaml"), "w") as fd:
+            print(
+                """network:
   version: 2
   openvswitch:
     ports: [[patchx, patchc], [patchy, patchd]]
   bridges:
     ovs0: {openvswitch: {}}
-''', file=fd)
-        with open(os.path.join(self.workdir.name, "invalid.yaml"), 'w') as fd:
-            print('''network:
+""",
+                file=fd,
+            )
+        with open(os.path.join(self.workdir.name, "invalid.yaml"), "w") as fd:
+            print(
+                """network:
   version: 2
   vlans:
     vlan78:
       id: 78
       link: ethinvalid
-''', file=fd)
-        with open(os.path.join(self.workdir.name, "etc/netplan/test.yaml"), 'w') as fd:
-            print('''network:
+""",
+                file=fd,
+            )
+        with open(os.path.join(self.workdir.name, "etc/netplan/test.yaml"), "w") as fd:
+            print(
+                """network:
   version: 2
   renderer: networkd
   openvswitch:
@@ -169,126 +185,179 @@ class TestConfigManager(unittest.TestCase):
           connection.id: some-nm-id
           connection.uuid: some-uuid
           connection.type: ethernet
-''', file=fd)
-        with open(os.path.join(self.workdir.name, "run/systemd/network/01-pretend.network"), 'w') as fd:
+""",
+                file=fd,
+            )
+        with open(
+            os.path.join(self.workdir.name, "run/systemd/network/01-pretend.network"), "w"
+        ) as fd:
             print("pretend .network", file=fd)
-        with open(os.path.join(self.workdir.name, "run/NetworkManager/system-connections/pretend"), 'w') as fd:
+        with open(
+            os.path.join(self.workdir.name, "run/NetworkManager/system-connections/pretend"), "w"
+        ) as fd:
             print("pretend NM config", file=fd)
 
     def test_parse(self):
         self.configmanager.parse()
         state = self.configmanager.np_state
         assert state
-        self.assertIn('lo',     self.configmanager.ethernets)
-        self.assertIn('eth0',   state.ethernets)
-        self.assertIn('bond6',  state.bonds)
-        self.assertIn('eth0',   self.configmanager.physical_interfaces)
-        self.assertNotIn('bond7', self.configmanager.all_defs)
-        self.assertNotIn('bond6', self.configmanager.physical_interfaces)
-        self.assertIn('wwan0', state.modems)
-        self.assertIn('wwan0', self.configmanager.physical_interfaces)
+        self.assertIn("lo", self.configmanager.ethernets)
+        self.assertIn("eth0", state.ethernets)
+        self.assertIn("bond6", state.bonds)
+        self.assertIn("eth0", self.configmanager.physical_interfaces)
+        self.assertNotIn("bond7", self.configmanager.all_defs)
+        self.assertNotIn("bond6", self.configmanager.physical_interfaces)
+        self.assertIn("wwan0", state.modems)
+        self.assertIn("wwan0", self.configmanager.physical_interfaces)
         # self.assertIn('apn', self.configmanager.modems.get('wwan0'))
-        self.assertIn('he-ipv6',    state.tunnels)
-        self.assertNotIn('he-ipv6', self.configmanager.physical_interfaces)
+        self.assertIn("he-ipv6", state.tunnels)
+        self.assertNotIn("he-ipv6", self.configmanager.physical_interfaces)
         # self.assertIn('remote', self.configmanager.tunnels.get('he-ipv6'))
-        self.assertIn('patcha', state.ovs_ports)
-        self.assertIn('patchb', state.ovs_ports)
+        self.assertIn("patcha", state.ovs_ports)
+        self.assertIn("patchb", state.ovs_ports)
 
-        self.assertEqual('networkd', state.backend)
-        self.assertIn('fallback',    state.nm_devices)
+        self.assertEqual("networkd", state.backend)
+        self.assertIn("fallback", state.nm_devices)
 
-        self.assertIn('vrf1005', self.configmanager.virtual_interfaces)
-        self.assertIn('vlan2',   self.configmanager.virtual_interfaces)
-        self.assertIn('br3',     self.configmanager.virtual_interfaces)
-        self.assertIn('br4',     self.configmanager.virtual_interfaces)
-        self.assertIn('vxlan1005', self.configmanager.virtual_interfaces)
-        self.assertIn('vxlan1',  self.configmanager.virtual_interfaces)
-        self.assertIn('bond5',   self.configmanager.virtual_interfaces)
-        self.assertIn('bond6',   self.configmanager.virtual_interfaces)
-        self.assertIn('he-ipv6', self.configmanager.virtual_interfaces)
+        self.assertIn("vrf1005", self.configmanager.virtual_interfaces)
+        self.assertIn("vlan2", self.configmanager.virtual_interfaces)
+        self.assertIn("br3", self.configmanager.virtual_interfaces)
+        self.assertIn("br4", self.configmanager.virtual_interfaces)
+        self.assertIn("vxlan1005", self.configmanager.virtual_interfaces)
+        self.assertIn("vxlan1", self.configmanager.virtual_interfaces)
+        self.assertIn("bond5", self.configmanager.virtual_interfaces)
+        self.assertIn("bond6", self.configmanager.virtual_interfaces)
+        self.assertIn("he-ipv6", self.configmanager.virtual_interfaces)
 
     def test_parse_merging(self):
-        state = self.configmanager.parse(extra_config=[os.path.join(self.workdir.name, "newfile_merging.yaml")])
-        self.assertIn('eth0',    state.ethernets)
-        self.assertIn('eth42',   state.ethernets)
+        state = self.configmanager.parse(
+            extra_config=[os.path.join(self.workdir.name, "newfile_merging.yaml")]
+        )
+        self.assertIn("eth0", state.ethernets)
+        self.assertIn("eth42", state.ethernets)
 
     def test_parse_merging_ovs(self):
-        state = self.configmanager.parse(extra_config=[os.path.join(self.workdir.name, "ovs_merging.yaml")])
-        self.assertIn('eth0',   state.ethernets)
+        state = self.configmanager.parse(
+            extra_config=[os.path.join(self.workdir.name, "ovs_merging.yaml")]
+        )
+        self.assertIn("eth0", state.ethernets)
         # self.assertIn('dhcp4',  state.ethernets['eth0'])
-        self.assertIn('patchx', state.ovs_ports)
-        self.assertIn('patchy', state.ovs_ports)
-        self.assertIn('ovs0',   state.bridges)
-        self.assertEqual('OpenVSwitch', state['ovs0'].backend)
-        self.assertEqual('OpenVSwitch', state['patchx'].backend)
-        self.assertEqual('OpenVSwitch', state['patchy'].backend)
+        self.assertIn("patchx", state.ovs_ports)
+        self.assertIn("patchy", state.ovs_ports)
+        self.assertIn("ovs0", state.bridges)
+        self.assertEqual("OpenVSwitch", state["ovs0"].backend)
+        self.assertEqual("OpenVSwitch", state["patchx"].backend)
+        self.assertEqual("OpenVSwitch", state["patchy"].backend)
 
     def test_parse_emptydict(self):
-        state = self.configmanager.parse(extra_config=[os.path.join(self.workdir.name, "newfile_emptydict.yaml")])
-        self.assertIn('br666',   state.bridges)
-        self.assertIn('eth0',    state.ethernets)
+        state = self.configmanager.parse(
+            extra_config=[os.path.join(self.workdir.name, "newfile_emptydict.yaml")]
+        )
+        self.assertIn("br666", state.bridges)
+        self.assertIn("eth0", state.ethernets)
 
     def test_parse_invalid(self):
         with self.assertRaises(ConfigurationError):
             self.configmanager.parse(extra_config=[os.path.join(self.workdir.name, "invalid.yaml")])
 
     def test_parse_extra_config(self):
-        state = self.configmanager.parse(extra_config=[os.path.join(self.workdir.name, "newfile.yaml")])
-        self.assertIn('ethtest', state.ethernets)
-        self.assertIn('bond6',   state.bonds)
+        state = self.configmanager.parse(
+            extra_config=[os.path.join(self.workdir.name, "newfile.yaml")]
+        )
+        self.assertIn("ethtest", state.ethernets)
+        self.assertIn("bond6", state.bonds)
 
     def test_add(self):
-        self.configmanager.add({os.path.join(self.workdir.name, "newfile.yaml"):
-                                os.path.join(self.workdir.name, "etc/netplan/newfile.yaml")})
-        self.assertIn(os.path.join(self.workdir.name, "newfile.yaml"),
-                      self.configmanager.extra_files)
+        self.configmanager.add(
+            {
+                os.path.join(self.workdir.name, "newfile.yaml"): os.path.join(
+                    self.workdir.name, "etc/netplan/newfile.yaml"
+                )
+            }
+        )
+        self.assertIn(
+            os.path.join(self.workdir.name, "newfile.yaml"), self.configmanager.extra_files
+        )
         self.assertTrue(os.path.exists(os.path.join(self.workdir.name, "etc/netplan/newfile.yaml")))
 
     def test_backup_missing_dirs(self):
         backup_dir = self.configmanager.tempdir
         shutil.rmtree(os.path.join(self.workdir.name, "run/systemd/network"))
         self.configmanager.backup(backup_config_dir=False)
-        self.assertTrue(os.path.exists(os.path.join(backup_dir, "run/NetworkManager/system-connections/pretend")))
+        self.assertTrue(
+            os.path.exists(
+                os.path.join(backup_dir, "run/NetworkManager/system-connections/pretend")
+            )
+        )
         # no source dir means no backup as well
-        self.assertFalse(os.path.exists(os.path.join(backup_dir, "run/systemd/network/01-pretend.network")))
+        self.assertFalse(
+            os.path.exists(os.path.join(backup_dir, "run/systemd/network/01-pretend.network"))
+        )
         self.assertFalse(os.path.exists(os.path.join(backup_dir, "etc/netplan/test.yaml")))
 
     def test_backup_without_config_file(self):
         backup_dir = self.configmanager.tempdir
         self.configmanager.backup(backup_config_dir=False)
-        self.assertTrue(os.path.exists(os.path.join(backup_dir, "run/NetworkManager/system-connections/pretend")))
-        self.assertTrue(os.path.exists(os.path.join(backup_dir, "run/systemd/network/01-pretend.network")))
+        self.assertTrue(
+            os.path.exists(
+                os.path.join(backup_dir, "run/NetworkManager/system-connections/pretend")
+            )
+        )
+        self.assertTrue(
+            os.path.exists(os.path.join(backup_dir, "run/systemd/network/01-pretend.network"))
+        )
         self.assertFalse(os.path.exists(os.path.join(backup_dir, "etc/netplan/test.yaml")))
 
     def test_backup_with_config_file(self):
         backup_dir = self.configmanager.tempdir
         self.configmanager.backup(backup_config_dir=True)
-        self.assertTrue(os.path.exists(os.path.join(backup_dir, "run/NetworkManager/system-connections/pretend")))
-        self.assertTrue(os.path.exists(os.path.join(backup_dir, "run/systemd/network/01-pretend.network")))
+        self.assertTrue(
+            os.path.exists(
+                os.path.join(backup_dir, "run/NetworkManager/system-connections/pretend")
+            )
+        )
+        self.assertTrue(
+            os.path.exists(os.path.join(backup_dir, "run/systemd/network/01-pretend.network"))
+        )
         self.assertTrue(os.path.exists(os.path.join(backup_dir, "etc/netplan/test.yaml")))
 
     def test_revert(self):
         self.configmanager.backup()
-        with open(os.path.join(self.workdir.name, "run/systemd/network/01-pretend.network"), 'a+') as fd:
+        with open(
+            os.path.join(self.workdir.name, "run/systemd/network/01-pretend.network"), "a+"
+        ) as fd:
             print("CHANGED", file=fd)
-        with open(os.path.join(self.workdir.name, "run/systemd/network/01-pretend.network"), 'r') as fd:
+        with open(
+            os.path.join(self.workdir.name, "run/systemd/network/01-pretend.network"), "r"
+        ) as fd:
             lines = fd.readlines()
             self.assertIn("CHANGED\n", lines)
         self.configmanager.revert()
-        with open(os.path.join(self.workdir.name, "run/systemd/network/01-pretend.network"), 'r') as fd:
+        with open(
+            os.path.join(self.workdir.name, "run/systemd/network/01-pretend.network"), "r"
+        ) as fd:
             lines = fd.readlines()
             self.assertNotIn("CHANGED\n", lines)
 
     def test_revert_extra_files(self):
-        self.configmanager.add({os.path.join(self.workdir.name, "newfile.yaml"):
-                                os.path.join(self.workdir.name, "etc/netplan/newfile.yaml")})
-        self.assertIn(os.path.join(self.workdir.name, "newfile.yaml"),
-                      self.configmanager.extra_files)
+        self.configmanager.add(
+            {
+                os.path.join(self.workdir.name, "newfile.yaml"): os.path.join(
+                    self.workdir.name, "etc/netplan/newfile.yaml"
+                )
+            }
+        )
+        self.assertIn(
+            os.path.join(self.workdir.name, "newfile.yaml"), self.configmanager.extra_files
+        )
         self.assertTrue(os.path.exists(os.path.join(self.workdir.name, "etc/netplan/newfile.yaml")))
         self.configmanager.revert()
-        self.assertNotIn(os.path.join(self.workdir.name, "newfile.yaml"),
-                         self.configmanager.extra_files)
-        self.assertFalse(os.path.exists(os.path.join(self.workdir.name, "etc/netplan/newfile.yaml")))
+        self.assertNotIn(
+            os.path.join(self.workdir.name, "newfile.yaml"), self.configmanager.extra_files
+        )
+        self.assertFalse(
+            os.path.exists(os.path.join(self.workdir.name, "etc/netplan/newfile.yaml"))
+        )
 
     def test_cleanup(self):
         backup_dir = self.configmanager.tempdir
@@ -313,11 +382,15 @@ class TestConfigManager(unittest.TestCase):
         self.assertFalse(os.path.exists(backup_dir))
 
     def test__copy_tree(self):
-        self.configmanager._copy_tree(os.path.join(self.workdir.name, "etc"),
-                                      os.path.join(self.workdir.name, "etc2"))
+        self.configmanager._copy_tree(
+            os.path.join(self.workdir.name, "etc"), os.path.join(self.workdir.name, "etc2")
+        )
         self.assertTrue(os.path.exists(os.path.join(self.workdir.name, "etc2/netplan/test.yaml")))
 
     def test__copy_tree_missing_source(self):
         with self.assertRaises(FileNotFoundError):
-            self.configmanager._copy_tree(os.path.join(self.workdir.name, "nonexistent"),
-                                          os.path.join(self.workdir.name, "nonexistent2"), missing_ok=False)
+            self.configmanager._copy_tree(
+                os.path.join(self.workdir.name, "nonexistent"),
+                os.path.join(self.workdir.name, "nonexistent2"),
+                missing_ok=False,
+            )

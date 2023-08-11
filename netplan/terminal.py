@@ -59,7 +59,9 @@ class Terminal(object):
         flags = fcntl.fcntl(self.fd, fcntl.F_GETFL)
         fcntl.fcntl(self.fd, fcntl.F_SETFL, flags & ~os.O_NONBLOCK)
 
-    def get_confirmation_input(self, timeout=120, message=None):  # pragma: nocover (requires user input)
+    def get_confirmation_input(
+        self, timeout=120, message=None
+    ):  # pragma: nocover (requires user input)
         """
         Get a "confirmation" input from the user, for at most (timeout)
         seconds. Optionally, customize the message to be displayed.
@@ -83,8 +85,11 @@ class Terminal(object):
 
         print("Press ENTER before the timeout to {}\n\n".format(message))
         timeout_now = timeout
-        while (timeout_now > 0):
-            print("Changes will revert in {:>{}} seconds".format(timeout_now, len(str(timeout))), end='\r')
+        while timeout_now > 0:
+            print(
+                "Changes will revert in {:>{}} seconds".format(timeout_now, len(str(timeout))),
+                end="\r",
+            )
 
             # wait at most 1 second for usable input from stdin
             select.select([sys.stdin], [], [], 1)
@@ -92,7 +97,7 @@ class Terminal(object):
                 # retrieve any input from the terminal. select() either has
                 # timed out with no input, or found something we can retrieve.
                 c = sys.stdin.read()
-                if (c == '\n'):
+                if c == "\n":
                     self.reset(settings)
                     # Yay, user has accepted the changes!
                     raise InputAccepted()
@@ -121,8 +126,7 @@ class Terminal(object):
         if sys.stdin.isatty():
             orig_term = termios.tcgetattr(self.fd)
         if dest is not None:
-            dest.update({'flags': orig_flags,
-                         'term': orig_term})
+            dest.update({"flags": orig_flags, "term": orig_term})
         else:
             self.orig_flags = orig_flags
             self.orig_term = orig_term
@@ -137,8 +141,8 @@ class Terminal(object):
         orig_term = None
         orig_flags = None
         if orig is not None:
-            orig_term = orig.get('term')
-            orig_flags = orig.get('flags')
+            orig_term = orig.get("term")
+            orig_flags = orig.get("flags")
         else:
             orig_term = self.orig_term
             orig_flags = self.orig_flags
@@ -148,10 +152,12 @@ class Terminal(object):
 
 
 class InputAccepted(Exception):
-    """ Denotes has accepted input"""
+    """Denotes has accepted input"""
+
     pass
 
 
 class InputRejected(Exception):
-    """ Denotes that the user has rejected input"""
+    """Denotes that the user has rejected input"""
+
     pass

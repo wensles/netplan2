@@ -20,15 +20,27 @@ import os
 import re
 import unittest
 
-from .base import TestBase, ND_VLAN, ND_EMPTY, ND_WITHIP, ND_DHCP6_WOCARRIER, \
-    NM_MANAGED, NM_UNMANAGED, NM_MANAGED_MAC, NM_UNMANAGED_MAC
+from .base import (
+    TestBase,
+    ND_VLAN,
+    ND_EMPTY,
+    ND_WITHIP,
+    ND_DHCP6_WOCARRIER,
+    NM_MANAGED,
+    NM_UNMANAGED,
+    NM_MANAGED_MAC,
+    NM_UNMANAGED_MAC,
+)
 
 
 class TestNetworkd(TestBase):
-
-    @unittest.skipIf("CODECOV_TOKEN" in os.environ, "Skipping on codecov.io: GLib changed hashtable elements order")
+    @unittest.skipIf(
+        "CODECOV_TOKEN" in os.environ,
+        "Skipping on codecov.io: GLib changed hashtable elements order",
+    )
     def test_vlan(self):  # pragma: nocover
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     en1: {}
@@ -41,9 +53,12 @@ class TestNetworkd(TestBase):
       id: 3
       link: en1
       macaddress: aa:bb:cc:dd:ee:11
-    engreen: {id: 2, link: en1, dhcp6: true}''')
+    engreen: {id: 2, link: en1, dhcp6: true}"""
+        )
 
-        self.assert_networkd({'en1.network': '''[Match]
+        self.assert_networkd(
+            {
+                "en1.network": """[Match]
 Name=en1
 
 [Network]
@@ -51,30 +66,39 @@ LinkLocalAddressing=ipv6
 VLAN=enblue
 VLAN=enred
 VLAN=engreen
-''',
-                              'enblue.netdev': ND_VLAN % ('enblue', 1),
-                              'engreen.netdev': ND_VLAN % ('engreen', 2),
-                              'enred.netdev': '''[NetDev]
+""",
+                "enblue.netdev": ND_VLAN % ("enblue", 1),
+                "engreen.netdev": ND_VLAN % ("engreen", 2),
+                "enred.netdev": """[NetDev]
 Name=enred
 MACAddress=aa:bb:cc:dd:ee:11
 Kind=vlan
 
 [VLAN]
 Id=3
-''',
-                              'enblue.network': ND_WITHIP % ('enblue', '1.2.3.4/24'),
-                              'enred.network': (ND_EMPTY % ('enred', 'ipv6'))
-                              .replace('[Network]', '[Link]\nMACAddress=aa:bb:cc:dd:ee:11\n\n[Network]'),
-                              'engreen.network': (ND_DHCP6_WOCARRIER % 'engreen')})
+""",
+                "enblue.network": ND_WITHIP % ("enblue", "1.2.3.4/24"),
+                "enred.network": (ND_EMPTY % ("enred", "ipv6")).replace(
+                    "[Network]", "[Link]\nMACAddress=aa:bb:cc:dd:ee:11\n\n[Network]"
+                ),
+                "engreen.network": (ND_DHCP6_WOCARRIER % "engreen"),
+            }
+        )
 
         self.assert_nm(None)
-        self.assert_nm_udev(NM_UNMANAGED % 'en1' + NM_UNMANAGED % 'enblue' + NM_UNMANAGED % 'enred' +
-                            NM_UNMANAGED_MAC % 'aa:bb:cc:dd:ee:11' + NM_UNMANAGED % 'engreen')
+        self.assert_nm_udev(
+            NM_UNMANAGED % "en1"
+            + NM_UNMANAGED % "enblue"
+            + NM_UNMANAGED % "enred"
+            + NM_UNMANAGED_MAC % "aa:bb:cc:dd:ee:11"
+            + NM_UNMANAGED % "engreen"
+        )
 
     def test_vlan_sriov(self):
         # we need to make sure renderer: sriov vlans are not saved as part of
         # the NM/networkd config
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   ethernets:
     en1: {}
@@ -83,24 +107,32 @@ Id=3
       id: 1
       link: en1
       renderer: sriov
-    engreen: {id: 2, link: en1, dhcp6: true}''')
+    engreen: {id: 2, link: en1, dhcp6: true}"""
+        )
 
-        self.assert_networkd({'en1.network': '''[Match]
+        self.assert_networkd(
+            {
+                "en1.network": """[Match]
 Name=en1
 
 [Network]
 LinkLocalAddressing=ipv6
 VLAN=engreen
-''',
-                              'engreen.netdev': ND_VLAN % ('engreen', 2),
-                              'engreen.network': (ND_DHCP6_WOCARRIER % 'engreen')})
+""",
+                "engreen.netdev": ND_VLAN % ("engreen", 2),
+                "engreen.network": (ND_DHCP6_WOCARRIER % "engreen"),
+            }
+        )
 
         self.assert_nm(None)
-        self.assert_nm_udev(NM_UNMANAGED % 'en1' + NM_UNMANAGED % 'enblue' + NM_UNMANAGED % 'engreen')
+        self.assert_nm_udev(
+            NM_UNMANAGED % "en1" + NM_UNMANAGED % "enblue" + NM_UNMANAGED % "engreen"
+        )
 
     # see LP: #1888726
     def test_vlan_parent_match(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: networkd
   ethernets:
@@ -109,9 +141,12 @@ VLAN=engreen
       set-name: lan
       mtu: 9000
   vlans:
-    vlan20: {id: 20, link: lan}''')
+    vlan20: {id: 20, link: lan}"""
+        )
 
-        self.assert_networkd({'lan.network': '''[Match]
+        self.assert_networkd(
+            {
+                "lan.network": """[Match]
 PermanentMACAddress=11:22:33:44:55:66
 Name=lan
 
@@ -121,26 +156,30 @@ MTUBytes=9000
 [Network]
 LinkLocalAddressing=ipv6
 VLAN=vlan20
-''',
-                              'lan.link': '''[Match]
+""",
+                "lan.link": """[Match]
 PermanentMACAddress=11:22:33:44:55:66
 
 [Link]
 Name=lan
 WakeOnLan=off
 MTUBytes=9000
-''',
-                              'vlan20.network': ND_EMPTY % ('vlan20', 'ipv6'),
-                              'vlan20.netdev': ND_VLAN % ('vlan20', 20)})
+""",
+                "vlan20.network": ND_EMPTY % ("vlan20", "ipv6"),
+                "vlan20.netdev": ND_VLAN % ("vlan20", 20),
+            }
+        )
 
         self.assert_nm(None)
-        self.assert_nm_udev(NM_UNMANAGED % 'lan' + NM_UNMANAGED_MAC % '11:22:33:44:55:66' + NM_UNMANAGED % 'vlan20')
+        self.assert_nm_udev(
+            NM_UNMANAGED % "lan" + NM_UNMANAGED_MAC % "11:22:33:44:55:66" + NM_UNMANAGED % "vlan20"
+        )
 
 
 class TestNetworkManager(TestBase):
-
     def test_vlan(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
@@ -150,10 +189,13 @@ class TestNetworkManager(TestBase):
       id: 1
       link: en1
       addresses: [1.2.3.4/24]
-    engreen: {id: 2, link: en1, dhcp6: true}''')
+    engreen: {id: 2, link: en1, dhcp6: true}"""
+        )
 
         self.assert_networkd({})
-        self.assert_nm({'en1': '''[connection]
+        self.assert_nm(
+            {
+                "en1": """[connection]
 id=netplan-en1
 type=ethernet
 interface-name=en1
@@ -166,8 +208,8 @@ method=link-local
 
 [ipv6]
 method=ignore
-''',
-                        'enblue': '''[connection]
+""",
+                "enblue": """[connection]
 id=netplan-enblue
 type=vlan
 interface-name=enblue
@@ -182,8 +224,8 @@ address1=1.2.3.4/24
 
 [ipv6]
 method=ignore
-''',
-                        'engreen': '''[connection]
+""",
+                "engreen": """[connection]
 id=netplan-engreen
 type=vlan
 interface-name=engreen
@@ -198,29 +240,39 @@ method=link-local
 [ipv6]
 method=auto
 ip6-privacy=0
-'''})
-        self.assert_nm_udev(NM_MANAGED % 'en1' + NM_MANAGED % 'enblue' + NM_MANAGED % 'engreen')
+""",
+            }
+        )
+        self.assert_nm_udev(NM_MANAGED % "en1" + NM_MANAGED % "enblue" + NM_MANAGED % "engreen")
 
     def test_vlan_parent_match(self):
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
     en-v:
       match: {macaddress: "11:22:33:44:55:66"}
   vlans:
-    engreen: {id: 2, link: en-v, dhcp4: true}''')
+    engreen: {id: 2, link: en-v, dhcp4: true}"""
+        )
 
         self.assert_networkd({})
 
         # get assigned UUID  from en-v connection
-        with open(os.path.join(self.workdir.name, 'run/NetworkManager/system-connections/netplan-en-v.nmconnection')) as f:
-            m = re.search('uuid=([0-9a-fA-F-]{36})\n', f.read())
+        with open(
+            os.path.join(
+                self.workdir.name, "run/NetworkManager/system-connections/netplan-en-v.nmconnection"
+            )
+        ) as f:
+            m = re.search("uuid=([0-9a-fA-F-]{36})\n", f.read())
             self.assertTrue(m)
             uuid = m.group(1)
             self.assertNotEqual(uuid, "00000000-0000-0000-0000-000000000000")
 
-        self.assert_nm({'en-v': '''[connection]
+        self.assert_nm(
+            {
+                "en-v": """[connection]
 id=netplan-en-v
 type=ethernet
 uuid=%s
@@ -234,8 +286,9 @@ method=link-local
 
 [ipv6]
 method=ignore
-''' % uuid,
-                        'engreen': '''[connection]
+"""
+                % uuid,
+                "engreen": """[connection]
 id=netplan-engreen
 type=vlan
 interface-name=engreen
@@ -249,13 +302,17 @@ method=auto
 
 [ipv6]
 method=ignore
-''' % uuid})
-        self.assert_nm_udev(NM_MANAGED_MAC % '11:22:33:44:55:66' + NM_MANAGED % 'engreen')
+"""
+                % uuid,
+            }
+        )
+        self.assert_nm_udev(NM_MANAGED_MAC % "11:22:33:44:55:66" + NM_MANAGED % "engreen")
 
     def test_vlan_sriov(self):
         # we need to make sure renderer: sriov vlans are not saved as part of
         # the NM/networkd config
-        self.generate('''network:
+        self.generate(
+            """network:
   version: 2
   renderer: NetworkManager
   ethernets:
@@ -266,10 +323,13 @@ method=ignore
       link: en1
       addresses: [1.2.3.4/24]
       renderer: sriov
-    engreen: {id: 2, link: en1, dhcp6: true}''')
+    engreen: {id: 2, link: en1, dhcp6: true}"""
+        )
 
         self.assert_networkd({})
-        self.assert_nm({'en1': '''[connection]
+        self.assert_nm(
+            {
+                "en1": """[connection]
 id=netplan-en1
 type=ethernet
 interface-name=en1
@@ -282,8 +342,8 @@ method=link-local
 
 [ipv6]
 method=ignore
-''',
-                        'engreen': '''[connection]
+""",
+                "engreen": """[connection]
 id=netplan-engreen
 type=vlan
 interface-name=engreen
@@ -298,5 +358,7 @@ method=link-local
 [ipv6]
 method=auto
 ip6-privacy=0
-'''})
-        self.assert_nm_udev(NM_MANAGED % 'en1' + NM_MANAGED % 'enblue' + NM_MANAGED % 'engreen')
+""",
+            }
+        )
+        self.assert_nm_udev(NM_MANAGED % "en1" + NM_MANAGED % "enblue" + NM_MANAGED % "engreen")

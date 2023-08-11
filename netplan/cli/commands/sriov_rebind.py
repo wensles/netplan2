@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-'''netplan SR-IOV rebind command line'''
+"""netplan SR-IOV rebind command line"""
 
 import logging
 
@@ -24,15 +24,21 @@ from netplan.cli.sriov import PCIDevice, bind_vfs, _get_pci_slot_name
 
 
 class NetplanSriovRebind(utils.NetplanCommand):
-
     def __init__(self):
-        super().__init__(command_id='rebind',
-                         description='Rebind SR-IOV virtual functions of given physical functions to their driver',
-                         leaf=True)
+        super().__init__(
+            command_id="rebind",
+            description="Rebind SR-IOV virtual functions of given physical functions to their driver",
+            leaf=True,
+        )
 
     def run(self):
-        self.parser.add_argument('netdevs', type=str, nargs='*', default=[],
-                                 help='Space separated list of PF interface names')
+        self.parser.add_argument(
+            "netdevs",
+            type=str,
+            nargs="*",
+            default=[],
+            help="Space separated list of PF interface names",
+        )
         self.func = self.command_rebind
 
         self.parse_args()
@@ -44,7 +50,7 @@ class NetplanSriovRebind(utils.NetplanCommand):
             pci_addr = _get_pci_slot_name(iface)
             pcidev = PCIDevice(pci_addr)
             if not pcidev.is_pf:
-                logging.warning('{} does not seem to be a SR-IOV physical function'.format(iface))
+                logging.warning("{} does not seem to be a SR-IOV physical function".format(iface))
                 continue
             bound_vfs = bind_vfs(pcidev.vfs, pcidev.driver)
-            logging.info('{}: bound {} VFs'.format(pcidev, len(bound_vfs)))
+            logging.info("{}: bound {} VFs".format(pcidev, len(bound_vfs)))

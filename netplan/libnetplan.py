@@ -44,7 +44,7 @@ class _netplan_net_definition(ctypes.Structure):
     pass
 
 
-lib = ctypes.CDLL(ctypes.util.find_library('netplan'))
+lib = ctypes.CDLL(ctypes.util.find_library("netplan"))
 
 _GErrorPP = ctypes.POINTER(ctypes.POINTER(_GError))
 _NetplanParserP = ctypes.POINTER(_netplan_parser)
@@ -68,15 +68,15 @@ def _string_realloc_call_no_error(function):
         elif code == 0:
             return None  # pragma: nocover as it's hard to trigger for now
         else:
-            return buffer.value.decode('utf-8')
-    raise LibNetplanException('Halting due to string buffer size > 1M')  # pragma: nocover
+            return buffer.value.decode("utf-8")
+    raise LibNetplanException("Halting due to string buffer size > 1M")  # pragma: nocover
 
 
 def _checked_lib_call(fn, *args):
     err = ctypes.POINTER(_GError)()
     ret = bool(fn(*args, ctypes.byref(err)))
     if not ret:
-        raise LibNetplanException(err.contents.message.decode('utf-8'))
+        raise LibNetplanException(err.contents.message.decode("utf-8"))
 
 
 class Parser:
@@ -99,8 +99,12 @@ class Parser:
         lib.netplan_parser_load_nullable_fields.argtypes = [_NetplanParserP, c_int, _GErrorPP]
         lib.netplan_parser_load_nullable_fields.restype = c_int
 
-        lib.netplan_parser_load_nullable_overrides.argtypes =\
-            [_NetplanParserP, c_int, c_char_p, _GErrorPP]
+        lib.netplan_parser_load_nullable_overrides.argtypes = [
+            _NetplanParserP,
+            c_int,
+            c_char_p,
+            _GErrorPP,
+        ]
         lib.netplan_parser_load_nullable_overrides.restype = c_int
 
         cls._abi_loaded = True
@@ -114,19 +118,25 @@ class Parser:
 
     def load_yaml(self, input_file: Union[str, IO]):
         if isinstance(input_file, str):
-            _checked_lib_call(lib.netplan_parser_load_yaml, self._ptr, input_file.encode('utf-8'))
+            _checked_lib_call(lib.netplan_parser_load_yaml, self._ptr, input_file.encode("utf-8"))
         else:
             _checked_lib_call(lib.netplan_parser_load_yaml_from_fd, self._ptr, input_file.fileno())
 
     def load_yaml_hierarchy(self, rootdir):
-        _checked_lib_call(lib.netplan_parser_load_yaml_hierarchy, self._ptr, rootdir.encode('utf-8'))
+        _checked_lib_call(
+            lib.netplan_parser_load_yaml_hierarchy, self._ptr, rootdir.encode("utf-8")
+        )
 
     def load_nullable_fields(self, input_file: IO):
         _checked_lib_call(lib.netplan_parser_load_nullable_fields, self._ptr, input_file.fileno())
 
     def load_nullable_overrides(self, input_file: IO, constraint: str):
-        _checked_lib_call(lib.netplan_parser_load_nullable_overrides,
-                          self._ptr, input_file.fileno(), constraint.encode('utf-8'))
+        _checked_lib_call(
+            lib.netplan_parser_load_nullable_overrides,
+            self._ptr,
+            input_file.fileno(),
+            constraint.encode("utf-8"),
+        )
 
 
 class State:
@@ -140,7 +150,11 @@ class State:
         lib.netplan_state_new.restype = _NetplanStateP
         lib.netplan_state_clear.argtypes = [ctypes.POINTER(_NetplanStateP)]
 
-        lib.netplan_state_import_parser_results.argtypes = [_NetplanStateP, _NetplanParserP, _GErrorPP]
+        lib.netplan_state_import_parser_results.argtypes = [
+            _NetplanStateP,
+            _NetplanParserP,
+            _GErrorPP,
+        ]
         lib.netplan_state_import_parser_results.restype = c_int
 
         lib.netplan_state_get_netdefs_size.argtypes = [_NetplanStateP]
@@ -152,7 +166,12 @@ class State:
         lib.netplan_state_write_yaml_file.argtypes = [_NetplanStateP, c_char_p, c_char_p, _GErrorPP]
         lib.netplan_state_write_yaml_file.restype = c_int
 
-        lib.netplan_state_update_yaml_hierarchy.argtypes = [_NetplanStateP, c_char_p, c_char_p, _GErrorPP]
+        lib.netplan_state_update_yaml_hierarchy.argtypes = [
+            _NetplanStateP,
+            c_char_p,
+            c_char_p,
+            _GErrorPP,
+        ]
         lib.netplan_state_update_yaml_hierarchy.restype = c_int
 
         lib.netplan_state_dump_yaml.argtypes = [_NetplanStateP, c_int, _GErrorPP]
@@ -180,13 +199,13 @@ class State:
         _checked_lib_call(lib.netplan_state_import_parser_results, self._ptr, parser._ptr)
 
     def write_yaml_file(self, filename, rootdir):
-        name = filename.encode('utf-8') if filename else None
-        root = rootdir.encode('utf-8') if rootdir else None
+        name = filename.encode("utf-8") if filename else None
+        root = rootdir.encode("utf-8") if rootdir else None
         _checked_lib_call(lib.netplan_state_write_yaml_file, self._ptr, name, root)
 
     def update_yaml_hierarchy(self, default_filename, rootdir):
-        name = default_filename.encode('utf-8')
-        root = rootdir.encode('utf-8') if rootdir else None
+        name = default_filename.encode("utf-8")
+        root = rootdir.encode("utf-8") if rootdir else None
         _checked_lib_call(lib.netplan_state_update_yaml_hierarchy, self._ptr, name, root)
 
     def dump_yaml(self, output_file):
@@ -197,7 +216,7 @@ class State:
         return lib.netplan_state_get_netdefs_size(self._ptr)
 
     def __getitem__(self, def_id):
-        ptr = lib.netplan_state_get_netdef(self._ptr, def_id.encode('utf-8'))
+        ptr = lib.netplan_state_get_netdef(self._ptr, def_id.encode("utf-8"))
         if not ptr:
             raise IndexError()
         return NetDefinition(self, ptr)
@@ -248,7 +267,7 @@ class State:
 
     @property
     def backend(self):
-        return lib.netplan_backend_name(lib.netplan_state_get_backend(self._ptr)).decode('utf-8')
+        return lib.netplan_backend_name(lib.netplan_state_get_backend(self._ptr)).decode("utf-8")
 
     def dump_to_logs(self):
         # Convoluted way to dump the parsed config to the logs...
@@ -316,7 +335,11 @@ class NetDefinition:
         lib.netplan_def_type_name.argtypes = [c_int]
         lib.netplan_def_type_name.restype = c_char_p
 
-        lib._netplan_state_get_vf_count_for_def.argtypes = [_NetplanStateP, _NetplanNetDefinitionP, _GErrorPP]
+        lib._netplan_state_get_vf_count_for_def.argtypes = [
+            _NetplanStateP,
+            _NetplanNetDefinitionP,
+            _GErrorPP,
+        ]
         lib._netplan_state_get_vf_count_for_def.restype = c_int
 
         lib._netplan_netdef_is_trivial_compound_itf.argtypes = [_NetplanNetDefinitionP]
@@ -325,7 +348,7 @@ class NetDefinition:
         cls._abi_loaded = True
 
     def __eq__(self, other):
-        if not hasattr(other, '_ptr'):
+        if not hasattr(other, "_ptr"):
             return False
         return ctypes.addressof(self._ptr.contents) == ctypes.addressof(other._ptr.contents)
 
@@ -342,7 +365,9 @@ class NetDefinition:
 
     @property
     def set_name(self):
-        return _string_realloc_call_no_error(lambda b: lib.netplan_netdef_get_set_name(self._ptr, b, len(b)))
+        return _string_realloc_call_no_error(
+            lambda b: lib.netplan_netdef_get_set_name(self._ptr, b, len(b))
+        )
 
     @property
     def critical(self):
@@ -397,50 +422,59 @@ class NetDefinition:
 
     @property
     def backend(self):
-        return lib.netplan_backend_name(lib.netplan_netdef_get_backend(self._ptr)).decode('utf-8')
+        return lib.netplan_backend_name(lib.netplan_netdef_get_backend(self._ptr)).decode("utf-8")
 
     @property
     def type(self):
-        return lib.netplan_def_type_name(lib.netplan_netdef_get_type(self._ptr)).decode('utf-8')
+        return lib.netplan_def_type_name(lib.netplan_netdef_get_type(self._ptr)).decode("utf-8")
 
     @property
     def id(self):
-        return _string_realloc_call_no_error(lambda b: lib.netplan_netdef_get_id(self._ptr, b, len(b)))
+        return _string_realloc_call_no_error(
+            lambda b: lib.netplan_netdef_get_id(self._ptr, b, len(b))
+        )
 
     @property
     def filepath(self):
-        return _string_realloc_call_no_error(lambda b: lib.netplan_netdef_get_filepath(self._ptr, b, len(b)))
+        return _string_realloc_call_no_error(
+            lambda b: lib.netplan_netdef_get_filepath(self._ptr, b, len(b))
+        )
 
     @property
     def embedded_switch_mode(self):
         mode = lib.netplan_netdef_get_embedded_switch_mode(self._ptr)
-        return mode and mode.decode('utf-8')
+        return mode and mode.decode("utf-8")
 
     @property
     def delay_virtual_functions_rebind(self):
         return bool(lib.netplan_netdef_get_delay_virtual_functions_rebind(self._ptr))
 
     def match_interface(self, itf_name=None, itf_driver=None, itf_mac=None):
-        return bool(lib.netplan_netdef_match_interface(
-            self._ptr,
-            itf_name and itf_name.encode('utf-8'),
-            itf_mac and itf_mac.encode('utf-8'),
-            itf_driver and itf_driver.encode('utf-8')))
+        return bool(
+            lib.netplan_netdef_match_interface(
+                self._ptr,
+                itf_name and itf_name.encode("utf-8"),
+                itf_mac and itf_mac.encode("utf-8"),
+                itf_driver and itf_driver.encode("utf-8"),
+            )
+        )
 
     @property
     def vf_count(self):
         err = ctypes.POINTER(_GError)()
-        count = lib._netplan_state_get_vf_count_for_def(self._parent._ptr, self._ptr, ctypes.byref(err))
+        count = lib._netplan_state_get_vf_count_for_def(
+            self._parent._ptr, self._ptr, ctypes.byref(err)
+        )
         if count < 0:
-            raise LibNetplanException(err.contents.message.decode('utf-8'))
+            raise LibNetplanException(err.contents.message.decode("utf-8"))
         return count
 
     @property
     def is_trivial_compound_itf(self):
-        '''
+        """
         Returns True if the interface is a compound interface (bond or bridge),
         and its configuration is trivial, without any variation from the defaults.
-        '''
+        """
         return bool(lib._netplan_netdef_is_trivial_compound_itf(self._ptr))
 
 
@@ -452,11 +486,15 @@ class _NetdefIterator:
         if cls._abi_loaded:
             return
 
-        if not hasattr(lib, '_netplan_iter_defs_per_devtype_init'):  # pragma: nocover (hard to unit-test against the WRONG lib)
-            raise LibNetplanException('''
+        if not hasattr(
+            lib, "_netplan_iter_defs_per_devtype_init"
+        ):  # pragma: nocover (hard to unit-test against the WRONG lib)
+            raise LibNetplanException(
+                """
                 The current version of libnetplan does not allow iterating by devtype.
                 Please ensure that both the netplan CLI package and its library are up to date.
-            ''')
+            """
+            )
         lib._netplan_state_new_netdef_pertype_iter.argtypes = [_NetplanStateP, c_char_p]
         lib._netplan_state_new_netdef_pertype_iter.restype = c_void_p
 
@@ -475,7 +513,9 @@ class _NetdefIterator:
         self._load_abi()
         # To keep things valid, keep a reference to the parent state
         self.np_state = np_state
-        self.iterator = lib._netplan_state_new_netdef_pertype_iter(np_state._ptr, devtype and devtype.encode('utf-8'))
+        self.iterator = lib._netplan_state_new_netdef_pertype_iter(
+            np_state._ptr, devtype and devtype.encode("utf-8")
+        )
 
     def __del__(self):
         lib._netplan_iter_defs_per_devtype_free(self.iterator)
@@ -498,14 +538,18 @@ lib.netplan_util_dump_yaml_subtree.restype = c_int
 
 
 def create_yaml_patch(patch_object_path: List[str], patch_payload: str, patch_output):
-    _checked_lib_call(lib.netplan_util_create_yaml_patch,
-                      '\t'.join(patch_object_path).encode('utf-8'),
-                      patch_payload.encode('utf-8'),
-                      patch_output.fileno())
+    _checked_lib_call(
+        lib.netplan_util_create_yaml_patch,
+        "\t".join(patch_object_path).encode("utf-8"),
+        patch_payload.encode("utf-8"),
+        patch_output.fileno(),
+    )
 
 
 def dump_yaml_subtree(prefix, input_file, output_file):
-    _checked_lib_call(lib.netplan_util_dump_yaml_subtree,
-                      prefix.encode('utf-8'),
-                      input_file.fileno(),
-                      output_file.fileno())
+    _checked_lib_call(
+        lib.netplan_util_dump_yaml_subtree,
+        prefix.encode("utf-8"),
+        input_file.fileno(),
+        output_file.fileno(),
+    )
